@@ -1,0 +1,50 @@
+# Theme-level defaults, merged into every consuming site's config.
+# The brand nav lives here with ABSOLUTE www URLs so the header is identical and
+# works across every subdomain (www, kb) — a relative "/blog/" would 404 on kb.
+
+[markup]
+  [markup.goldmark.renderer]
+    unsafe = true
+  [markup.highlight]
+    style = "monokai"
+
+[taxonomies]
+  tag = "tags"
+
+[menu]
+  [[menu.main]]
+    name = "Home"
+    url = "https://www.heroiclands.org/"
+    weight = 1
+  [[menu.main]]
+    name = "Thalorna"
+    url = "https://www.heroiclands.org/thalorna/world/thalorna/"
+    weight = 2
+  [[menu.main]]
+    name = "Blog"
+    url = "https://www.heroiclands.org/blog/"
+    weight = 3
+  [[menu.main]]
+    name = "Projects"
+    url = "https://www.heroiclands.org/projects/"
+    weight = 4
+    identifier = "projects"
+  [[menu.main]]
+    name = "Song of Heroic Lands"
+    url = "https://www.heroiclands.org/projects/sohl/"
+    weight = 1
+    parent = "projects"
+  [[menu.main]]
+    name = "HârnMaster 3"
+    url = "https://www.heroiclands.org/projects/hm3/"
+    weight = 2
+    parent = "projects"
+  [[menu.main]]
+    name = "Modules"
+    url = "https://www.heroiclands.org/projects/modules/"
+    weight = 3
+    parent = "projects"
+  [[menu.main]]
+    name = "License"
+    url = "https://www.heroiclands.org/license/"
+    weight = 5
