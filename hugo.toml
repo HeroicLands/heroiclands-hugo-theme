@@ -45,6 +45,16 @@
     weight = 3
     parent = "projects"
   [[menu.main]]
+    name = "API Documentation"
+    url = "https://api.heroiclands.org/"
+    weight = 4
+    parent = "projects"
+  [[menu.main]]
+    name = "KnowledgeBase"
+    url = "https://kb.heroiclands.org/"
+    weight = 5
+    parent = "projects"
+  [[menu.main]]
     name = "License"
     url = "https://www.heroiclands.org/license/"
     weight = 5
