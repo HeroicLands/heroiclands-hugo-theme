@@ -17,44 +17,33 @@
     url = "https://www.heroiclands.org/"
     weight = 1
   [[menu.main]]
-    name = "Thalorna"
-    url = "https://www.heroiclands.org/thalorna/world/thalorna/"
-    weight = 2
-  [[menu.main]]
-    name = "Blog"
-    url = "https://www.heroiclands.org/blog/"
-    weight = 3
-  [[menu.main]]
-    name = "Projects"
-    url = "https://www.heroiclands.org/projects/"
-    weight = 4
-    identifier = "projects"
-  [[menu.main]]
     name = "Song of Heroic Lands"
     url = "https://www.heroiclands.org/projects/sohl/"
-    weight = 1
-    parent = "projects"
-  [[menu.main]]
-    name = "HârnMaster 3"
-    url = "https://www.heroiclands.org/projects/hm3/"
     weight = 2
-    parent = "projects"
+    identifier = "sohl"
   [[menu.main]]
-    name = "Modules"
-    url = "https://www.heroiclands.org/projects/modules/"
-    weight = 3
-    parent = "projects"
+    name = "Knowledgebase"
+    url = "https://kb.heroiclands.org/"
+    weight = 1
+    parent = "sohl"
   [[menu.main]]
     name = "API Documentation"
     url = "https://api.heroiclands.org/"
-    weight = 4
-    parent = "projects"
+    weight = 2
+    parent = "sohl"
   [[menu.main]]
-    name = "KnowledgeBase"
-    url = "https://kb.heroiclands.org/"
+    name = "Thalorna"
+    url = "https://www.heroiclands.org/thalorna/world/thalorna/"
+    weight = 3
+  [[menu.main]]
+    name = "HârnMaster 3"
+    url = "https://www.heroiclands.org/projects/hm3/"
+    weight = 4
+  [[menu.main]]
+    name = "Modules"
+    url = "https://www.heroiclands.org/projects/modules/"
     weight = 5
-    parent = "projects"
   [[menu.main]]
     name = "License"
     url = "https://www.heroiclands.org/license/"
-    weight = 5
+    weight = 6

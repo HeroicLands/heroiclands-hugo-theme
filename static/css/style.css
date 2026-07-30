@@ -313,6 +313,48 @@ img {
   gap: 2rem;
 }
 
+/* Featured home layout: SoHL heading spans its two cards, with the
+   Thalorna card sitting to the right (spanning both rows). */
+.home-featured {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-rows: auto auto;
+  column-gap: 2rem;
+  row-gap: 0;
+  align-items: start;
+}
+
+.home-section-title {
+  grid-column: 1 / 3;
+  grid-row: 1;
+  font-family: var(--font-display);
+  font-size: 1.8rem;
+  font-weight: 700;
+  color: var(--text);
+  margin: 0 0 0.5rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.home-card--kb  { grid-column: 1; grid-row: 2; }
+.home-card--api { grid-column: 2; grid-row: 2; }
+.home-card--thalorna { grid-column: 3; grid-row: 1 / span 2; }
+
+/* Below ~900px the three fixed columns cramp the card images; stack them. */
+@media (max-width: 900px) {
+  .home-featured {
+    grid-template-columns: 1fr;
+  }
+
+  .home-featured .home-section-title,
+  .home-card--kb,
+  .home-card--api,
+  .home-card--thalorna {
+    grid-column: auto;
+    grid-row: auto;
+  }
+}
+
 .home-card {
   background: transparent;
   border: none;
@@ -978,6 +1020,22 @@ a.tag:hover {
 
   .home-grid {
     grid-template-columns: 1fr;
+  }
+
+  .home-featured {
+    grid-template-columns: 1fr;
+  }
+
+  .home-section-title {
+    grid-column: auto;
+    grid-row: auto;
+  }
+
+  .home-card--kb,
+  .home-card--api,
+  .home-card--thalorna {
+    grid-column: auto;
+    grid-row: auto;
   }
 
   .single-header h1 {
