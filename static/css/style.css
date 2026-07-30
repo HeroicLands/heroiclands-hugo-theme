@@ -337,10 +337,16 @@ img {
   border-bottom: 1px solid var(--border);
 }
 
+/* Settings header sits in the top row above the Thalorna card. */
+.home-section-title--settings {
+  grid-column: 3;
+  grid-row: 1;
+}
+
 .home-card--kb  { grid-column: 1; grid-row: 2; }
 .home-card--api { grid-column: 2; grid-row: 2; }
 
-.home-card--thalorna { grid-column: 3; grid-row: 1 / span 2; }
+.home-card--thalorna { grid-column: 3; grid-row: 2; }
 
 /* Below ~900px the three fixed columns cramp the card images; stack them. */
 @media (max-width: 900px) {
