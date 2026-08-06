@@ -49,7 +49,7 @@
 .ginf-crossed-swords::before { content: "\e418"; }
 .ginf-heart-beats::before { content: "\e736"; }
 .ginf-knapsack::before { content: "\e83e"; }
-.ginf-knocked-out-stars::before { content: "\e846"; }
+.ginf-knockout::before { content: "\e847"; }
 .ginf-old-wagon::before { content: "\ea18"; }
 .ginf-screaming::before { content: "\ec38"; }
 .ginf-skills::before { content: "\ecc3"; }
