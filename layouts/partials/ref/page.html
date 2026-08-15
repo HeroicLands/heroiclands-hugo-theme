@@ -1,0 +1,35 @@
+{{- /*
+  Resolve a cross-page reference to the Page it names, or "" when there is none.
+
+  Call with:
+    ref     — the authored value: a shortcode (identity), which is what every
+              reference field carries since #1388.
+    subtype — the subtype the reference points at ("settlement", "polity",
+              "language", …). A shortcode is only unique within a type, so this
+              is what keeps `parent.continents: [kalihara]` off the like-named
+              polity page.
+
+    {{ $pg := partial "ref/page.html" (dict "ctx" . "ref" $sc "subtype" "region") }}
+
+  The unqualified fallback is deliberate. Several references legitimately reach
+  a note filed under another subtype — a pantheon is authored as
+  `type: affiliation`, and a few language notes are typed `skill` or filed under
+  `lore` — and hard-scoping would silently drop exactly those. The fallback only
+  ever accepts a shortcode that names a single page, so it cannot resolve
+  ambiguously; see ref/index.html.
+*/ -}}
+
+{{- $idx := partialCached "ref/index.html" . -}}
+{{- $out := "" -}}
+
+{{- with .ref -}}
+  {{- $sc := . -}}
+  {{- with $.subtype -}}
+    {{- with index $idx.byId (printf "%s|%s" . $sc) -}}{{- $out = . -}}{{- end -}}
+  {{- end -}}
+  {{- if not $out -}}
+    {{- with index $idx.byShortcode $sc -}}{{- $out = . -}}{{- end -}}
+  {{- end -}}
+{{- end -}}
+
+{{- return $out -}}

@@ -1,0 +1,53 @@
+{{- /*
+  Identity index: "<subtype>|<shortcode>" → Page, plus "<shortcode>" → Page
+  for every shortcode that names exactly one page.
+
+  Cross-page references resolve on the shortcode, which is identity and
+  survives a rename, rather than on the slug, which is the URL segment and
+  exists to be improved (#1388).
+
+  Always reach this through `partialCached "ref/index.html" .` so the walk over
+  every page happens once per build instead of once per lookup — the settlement
+  infobox alone would otherwise scan the whole site up to eight times per page.
+  A scratch is used rather than repeated `merge` calls for the same reason:
+  `merge` copies the map it is given, so accumulating one key at a time over
+  four thousand pages would copy eight million entries to build one index.
+
+  $subtype collapses `type: doc` onto its `category`, exactly as single.html
+  does, so "settlement", "polity" and "region" are addressable even though every
+  one of them is a doc.
+
+  A shortcode is unique within a type but not across types — the totem mystery
+  `boar` and the animal `boar` are different documents — so a shortcode claimed
+  by more than one page is neutralised in the unqualified map rather than left
+  resolving to whichever page Hugo happened to reach first.
+*/ -}}
+
+{{- $s := newScratch -}}
+
+{{- range site.RegularPages -}}
+  {{- $pg := . -}}
+  {{- $sc := $pg.Params.shortcode | default "" -}}
+  {{- if $sc -}}
+    {{- $type := $pg.Params.type | default "" -}}
+    {{- $subtype := cond (eq $type "doc") ($pg.Params.category | default "") $type -}}
+    {{- with $subtype -}}
+      {{- $s.SetInMap "byId" (printf "%s|%s" . $sc) $pg -}}
+    {{- end -}}
+
+    {{- $seen := $s.Get "byShortcode" -}}
+    {{- if and $seen (isset $seen $sc) -}}
+      {{- $s.SetInMap "shared" $sc true -}}
+    {{- else -}}
+      {{- $s.SetInMap "byShortcode" $sc $pg -}}
+    {{- end -}}
+  {{- end -}}
+{{- end -}}
+
+{{- /* A page is only reachable unqualified when its shortcode names it alone. */ -}}
+{{- $byShortcode := $s.Get "byShortcode" | default dict -}}
+{{- range $sc, $_ := ($s.Get "shared" | default dict) -}}
+  {{- $byShortcode = merge $byShortcode (dict $sc false) -}}
+{{- end -}}
+
+{{- return dict "byId" ($s.Get "byId" | default dict) "byShortcode" $byShortcode -}}

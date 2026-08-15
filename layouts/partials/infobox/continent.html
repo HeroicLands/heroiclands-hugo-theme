@@ -6,7 +6,8 @@
 
   Fields rendered (all optional — guards keep missing data silent):
     - Name
-    - World — single slug, rendered as a link when a matching page exists.
+    - World — the world's shortcode, rendered as a link when it has a page
+      and as its name otherwise (see partials/ref/).
 */ -}}
 
 {{- $ctx := . -}}
@@ -27,12 +28,7 @@
     {{- with $world }}
     <dt>World</dt>
     <dd>
-      {{- $pg := first 1 (where $ctx.Site.RegularPages "Params.slug" .) -}}
-      {{- with index $pg 0 -}}
-        <a href="{{ .Permalink }}">{{ .LinkTitle }}</a>
-      {{- else -}}
-        {{ . | humanize | title }}
-      {{- end -}}
+      {{- partial "ref/link.html" (dict "ctx" $ctx "ref" . "subtype" "world") -}}
     </dd>
     {{- end }}
   </dl>

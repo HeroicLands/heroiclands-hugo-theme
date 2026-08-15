@@ -1,0 +1,30 @@
+{{- /*
+  Render one cross-page reference: a link when the target has a page, otherwise
+  the target's name as plain text.
+
+  Call with the same arguments as ref/page.html:
+
+    {{ partial "ref/link.html" (dict "ctx" . "ref" $sc "subtype" "language") }}
+
+  The plain-text branch carries real weight. A reference can name a note that
+  the exporter does not route to a page of its own — every pantheon does, since
+  pantheons are authored as `type: affiliation` and only a couple of those are
+  published — so roughly three hundred infobox rows across the setting have
+  always rendered as text rather than a link.
+
+  That text used to come from `humanize`, which read acceptably only because
+  the reference carried a slug: `aureldian-pantheon` humanises back to
+  "Aureldian Pantheon". A shortcode does not — it would print "Arldnpnthn" — so
+  the name comes from `data/refnames.yaml`, the index the exporter writes over
+  every vault note whether or not it is published. `humanize` remains the last
+  resort, for a reference naming nothing at all; those are dangling and the
+  humanised value is the author's own text, which is the most useful thing left
+  to show.
+*/ -}}
+
+{{- $pg := partial "ref/page.html" . -}}
+{{- with $pg -}}
+  <a href="{{ .Permalink }}">{{ .LinkTitle }}</a>
+{{- else -}}
+  {{- partial "ref/name.html" $ -}}
+{{- end -}}

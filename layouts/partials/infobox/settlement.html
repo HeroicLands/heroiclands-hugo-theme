@@ -3,8 +3,9 @@
 
   A floated card rendered at the top of a settlement page's main
   content column (type: doc, category: settlement). Mirrors the polity
-  infobox: a slug-driven profile card whose location/language/pantheon
-  rows resolve to real pages and render as links when a match exists.
+  infobox: an identity-driven profile card whose location/language/pantheon
+  rows carry the target's shortcode and resolve through partials/ref/ — a link
+  when the target has a page, its name when it does not.
 
   Rows:
     - Name         — name.full (fallback: title)
@@ -18,8 +19,8 @@
                      parent polities (nome/province → empire) and renders
                      the chain root→leaf as links joined by " — ", e.g.
                      "The Empire of Ta'Kheperu — The Capital Nome".
-    - Language     — languages slug(s) resolved to the language page(s)
-    - Pantheon     — pantheons slug(s) resolved to the pantheon page(s)
+    - Language     — language shortcode(s) resolved to the language page(s)
+    - Pantheon     — pantheon shortcode(s) resolved to the pantheon page(s)
 
   Every section is guarded so missing data silently disappears.
 */ -}}
@@ -44,8 +45,8 @@
 {{- if gt (len $polities) 0 }}{{ $cur = index $polities 0 }}{{ end -}}
 {{- range (seq 6) -}}
   {{- with $cur -}}
-    {{- $pg := first 1 (where $ctx.Site.RegularPages "Params.slug" .) -}}
-    {{- with index $pg 0 -}}
+    {{- $pg := partial "ref/page.html" (dict "ctx" $ctx "ref" . "subtype" "polity") -}}
+    {{- with $pg -}}
       {{- $chain = (slice .) | append $chain -}}
       {{- $cur = "" -}}
       {{- with .Params.parent }}{{- with .polities -}}
@@ -90,13 +91,8 @@
     {{- else -}}
       {{- $regions := slice -}}
       {{- with .Params.parent }}{{- with .regions }}{{ $regions = . }}{{ end -}}{{- end -}}
-      {{- range $slug := $regions -}}
-        {{- $pg := first 1 (where $ctx.Site.RegularPages "Params.slug" $slug) -}}
-        {{- with index $pg 0 -}}
-          {{- $locParts = $locParts | append (printf `<a href="%s">%s</a>` .Permalink .LinkTitle) -}}
-        {{- else -}}
-          {{- $locParts = $locParts | append (humanize $slug | title) -}}
-        {{- end -}}
+      {{- range $ref := $regions -}}
+        {{- $locParts = $locParts | append (partial "ref/link.html" (dict "ctx" $ctx "ref" $ref "subtype" "region")) -}}
       {{- end -}}
     {{- end -}}
     {{- if gt (len $locParts) 0 }}
@@ -108,13 +104,8 @@
     <dt>Language{{ if gt (len $langs) 1 }}s{{ end }}</dt>
     <dd>
       {{- $parts := slice -}}
-      {{- range $slug := $langs -}}
-        {{- $pg := first 1 (where $ctx.Site.RegularPages "Params.slug" $slug) -}}
-        {{- with index $pg 0 -}}
-          {{- $parts = $parts | append (printf `<a href="%s">%s</a>` .Permalink .LinkTitle) -}}
-        {{- else -}}
-          {{- $parts = $parts | append (humanize $slug | title) -}}
-        {{- end -}}
+      {{- range $ref := $langs -}}
+        {{- $parts = $parts | append (partial "ref/link.html" (dict "ctx" $ctx "ref" $ref "subtype" "language")) -}}
       {{- end -}}
       {{ delimit $parts ", " | safeHTML }}
     </dd>
@@ -124,13 +115,8 @@
     <dt>Pantheon{{ if gt (len $panths) 1 }}s{{ end }}</dt>
     <dd>
       {{- $parts := slice -}}
-      {{- range $slug := $panths -}}
-        {{- $pg := first 1 (where $ctx.Site.RegularPages "Params.slug" $slug) -}}
-        {{- with index $pg 0 -}}
-          {{- $parts = $parts | append (printf `<a href="%s">%s</a>` .Permalink .LinkTitle) -}}
-        {{- else -}}
-          {{- $parts = $parts | append (humanize $slug | title) -}}
-        {{- end -}}
+      {{- range $ref := $panths -}}
+        {{- $parts = $parts | append (partial "ref/link.html" (dict "ctx" $ctx "ref" $ref "subtype" "pantheon")) -}}
       {{- end -}}
       {{ delimit $parts ", " | safeHTML }}
     </dd>

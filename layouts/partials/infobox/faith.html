@@ -21,8 +21,10 @@
                Used when no `img` is provided (e.g. the Kemetían
                pantheon, which uses hieroglyphic name-glyphs rather
                than figural art).
-    pantheon — Slug of the parent pantheon page; rendered as a link
-               when a page with that slug is found in the site.
+    pantheon — Shortcode of the parent pantheon; rendered as a link when it
+               has a page and as its name otherwise (see partials/ref/).
+               Pantheons are authored as `type: affiliation` and most are not
+               routed to pages, so the name branch is the common one here.
 */ -}}
 
 {{- $ctx := . -}}
@@ -34,7 +36,7 @@
 {{- $symbol := .Params.symbol -}}
 {{- $img := .Params.img -}}
 {{- $glyph := .Params.glyph -}}
-{{- $pantheonSlug := .Params.pantheon -}}
+{{- $pantheonRef := .Params.pantheon -}}
 
 {{- /* Resolve img URL — if img is set and not already absolute,
        prefix it with the CDN root so per-deity illustrations can be
@@ -49,13 +51,12 @@
   {{- end -}}
 {{- end -}}
 
-{{- /* Resolve the pantheon slug to a real page if one exists, so the
-       Pantheon row can be a link. Falls back to humanized slug text
-       if the page isn't found. */ -}}
-{{- $pantheonPage := "" -}}
-{{- with $pantheonSlug -}}
-  {{- $pg := first 1 (where $ctx.Site.RegularPages "Params.slug" .) -}}
-  {{- with index $pg 0 -}}{{ $pantheonPage = . }}{{- end -}}
+{{- /* Resolve the pantheon's shortcode to its page when it has one, so the
+       Pantheon row can be a link; ref/link.html falls back to the pantheon's
+       name when it does not. */ -}}
+{{- $pantheonRow := "" -}}
+{{- with $pantheonRef -}}
+  {{- $pantheonRow = partial "ref/link.html" (dict "ctx" $ctx "ref" . "subtype" "pantheon") -}}
 {{- end -}}
 
 <aside class="geo-infobox faith-infobox info-sidebar">
@@ -109,13 +110,10 @@
     <dd>{{ . }}</dd>
     {{- end }}
 
-    {{- with $pantheonPage }}
+    {{- with $pantheonRow }}
     <dt>Pantheon</dt>
-    <dd><a href="{{ .Permalink }}">{{ .LinkTitle }}</a></dd>
-    {{- else }}{{- with $pantheonSlug }}
-    <dt>Pantheon</dt>
-    <dd>{{ . | humanize | title }}</dd>
-    {{- end }}{{- end }}
+    <dd>{{ . | safeHTML }}</dd>
+    {{- end }}
   </dl>
 
 </aside>

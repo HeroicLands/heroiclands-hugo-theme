@@ -1,0 +1,40 @@
+{{- /*
+  The display name for a reference, whether or not its target has a page.
+
+  Call with the same arguments as ref/page.html:
+
+    {{ partial "ref/name.html" (dict "ctx" . "ref" $sc "subtype" "pantheon") }}
+
+  Order of preference:
+    1. the target page's own title, when it has a page;
+    2. `data/refnames.yaml`, written by the exporter over every vault note —
+       this is what names the unpublished targets (pantheons, most affiliations);
+    3. the humanised reference value, for a reference that names nothing. Those
+       are dangling and want fixing in the vault; showing the author's own text
+       is the most useful thing left to do, and is what the site did before.
+*/ -}}
+
+{{- $sc := .ref | default "" -}}
+{{- $subtype := .subtype | default "" -}}
+{{- $name := "" -}}
+
+{{- with partial "ref/page.html" . -}}
+  {{- $name = .LinkTitle -}}
+{{- end -}}
+
+{{- if and (not $name) $sc -}}
+  {{- with site.Data.refnames -}}
+    {{- if $subtype -}}
+      {{- with index (.byId | default dict) (printf "%s|%s" $subtype $sc) -}}
+        {{- $name = . -}}
+      {{- end -}}
+    {{- end -}}
+    {{- if not $name -}}
+      {{- with index (.byShortcode | default dict) $sc -}}{{- $name = . -}}{{- end -}}
+    {{- end -}}
+  {{- end -}}
+{{- end -}}
+
+{{- if and (not $name) $sc -}}{{- $name = ($sc | humanize | title) -}}{{- end -}}
+
+{{- $name -}}

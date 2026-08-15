@@ -10,9 +10,10 @@
   Shows the key polity frontmatter fields. Every section is guarded
   so missing data silently disappears.
 
-  Slug-valued fields (languages, pantheons, capital) are resolved to
-  real pages and rendered as links when a match exists. Unresolvable
-  slugs fall back to a humanized label.
+  Reference fields (languages, pantheons, capital, and the parent chain)
+  carry the target's shortcode — identity, which survives a rename — and are
+  resolved through partials/ref/: a link when the target has a page, its name
+  when it does not, and the humanised reference only when it names nothing.
 */ -}}
 
 {{- $ctx := . -}}
@@ -41,17 +42,12 @@
        a glance. When unset, fall through to a plain "Type" row. The
        first entry of parent.polities is treated as the principal
        parent for display purposes. */ -}}
-{{- $parentSlug := "" -}}
-{{- if gt (len $parentPolities) 0 }}{{ $parentSlug = index $parentPolities 0 }}{{ end -}}
-{{- $parentPage := "" -}}
-{{- with $parentSlug -}}
-  {{- $pg := first 1 (where $ctx.Site.RegularPages "Params.slug" .) -}}
-  {{- with index $pg 0 -}}{{ $parentPage = . }}{{- end -}}
+{{- $parentRef := "" -}}
+{{- if gt (len $parentPolities) 0 }}{{ $parentRef = index $parentPolities 0 }}{{ end -}}
+{{- $parentRow := "" -}}
+{{- with $parentRef -}}
+  {{- $parentRow = partial "ref/link.html" (dict "ctx" $ctx "ref" . "subtype" "polity") -}}
 {{- end -}}
-
-{{- /* Local helper: turn a slug into either a link (if a page with that
-       slug exists) or a humanized label. Returns HTML as a string. */ -}}
-{{- $slugLink := `` -}}
 
 <aside class="geo-infobox polity-infobox info-sidebar">
 
@@ -64,16 +60,10 @@
     <dd>{{ $name }}</dd>
 
     {{- with $sub }}
-      {{- if $parentSlug }}
+      {{- if $parentRef }}
         {{- /* Subordinate polity: collapse Type + parent into a single row. */ -}}
     <dt>{{ . | humanize | title }} of</dt>
-    <dd>
-      {{- with $parentPage -}}
-        <a href="{{ .Permalink }}">{{ .LinkTitle }}</a>
-      {{- else -}}
-        {{ $parentSlug | humanize | title }}
-      {{- end -}}
-    </dd>
+    <dd>{{ $parentRow | safeHTML }}</dd>
       {{- else }}
     <dt>Type</dt>
     <dd>{{ . | humanize | title }}</dd>
@@ -86,14 +76,9 @@
     {{- end }}
 
     {{- with $capital }}
-      {{- $pg := first 1 (where $ctx.Site.RegularPages "Params.slug" .) -}}
     <dt>Capital</dt>
     <dd>
-      {{- with index $pg 0 -}}
-        <a href="{{ .Permalink }}">{{ .LinkTitle }}</a>
-      {{- else -}}
-        {{ . | humanize | title }}
-      {{- end -}}
+      {{- partial "ref/link.html" (dict "ctx" $ctx "ref" . "subtype" "settlement") -}}
     </dd>
     {{- end }}
 
@@ -125,13 +110,8 @@
     <dt>Language{{ if gt (len $langs) 1 }}s{{ end }}</dt>
     <dd>
       {{- $parts := slice -}}
-      {{- range $slug := $langs -}}
-        {{- $pg := first 1 (where $ctx.Site.RegularPages "Params.slug" $slug) -}}
-        {{- with index $pg 0 -}}
-          {{- $parts = $parts | append (printf `<a href="%s">%s</a>` .Permalink .LinkTitle) -}}
-        {{- else -}}
-          {{- $parts = $parts | append (humanize $slug | title) -}}
-        {{- end -}}
+      {{- range $ref := $langs -}}
+        {{- $parts = $parts | append (partial "ref/link.html" (dict "ctx" $ctx "ref" $ref "subtype" "language")) -}}
       {{- end -}}
       {{ delimit $parts ", " | safeHTML }}
     </dd>
@@ -141,13 +121,8 @@
     <dt>Pantheon{{ if gt (len $panths) 1 }}s{{ end }}</dt>
     <dd>
       {{- $parts := slice -}}
-      {{- range $slug := $panths -}}
-        {{- $pg := first 1 (where $ctx.Site.RegularPages "Params.slug" $slug) -}}
-        {{- with index $pg 0 -}}
-          {{- $parts = $parts | append (printf `<a href="%s">%s</a>` .Permalink .LinkTitle) -}}
-        {{- else -}}
-          {{- $parts = $parts | append (humanize $slug | title) -}}
-        {{- end -}}
+      {{- range $ref := $panths -}}
+        {{- $parts = $parts | append (partial "ref/link.html" (dict "ctx" $ctx "ref" $ref "subtype" "pantheon")) -}}
       {{- end -}}
       {{ delimit $parts ", " | safeHTML }}
     </dd>
@@ -160,13 +135,8 @@
     <dt>Region{{ if gt (len $regs) 1 }}s{{ end }}</dt>
     <dd>
       {{- $parts := slice -}}
-      {{- range $slug := $regs -}}
-        {{- $pg := first 1 (where $ctx.Site.RegularPages "Params.slug" $slug) -}}
-        {{- with index $pg 0 -}}
-          {{- $parts = $parts | append (printf `<a href="%s">%s</a>` .Permalink .LinkTitle) -}}
-        {{- else -}}
-          {{- $parts = $parts | append (humanize $slug | title) -}}
-        {{- end -}}
+      {{- range $ref := $regs -}}
+        {{- $parts = $parts | append (partial "ref/link.html" (dict "ctx" $ctx "ref" $ref "subtype" "region")) -}}
       {{- end -}}
       {{ delimit $parts ", " | safeHTML }}
     </dd>
@@ -174,13 +144,8 @@
     <dt>Continent{{ if gt (len $conts) 1 }}s{{ end }}</dt>
     <dd>
       {{- $parts := slice -}}
-      {{- range $slug := $conts -}}
-        {{- $pg := first 1 (where $ctx.Site.RegularPages "Params.slug" $slug) -}}
-        {{- with index $pg 0 -}}
-          {{- $parts = $parts | append (printf `<a href="%s">%s</a>` .Permalink .LinkTitle) -}}
-        {{- else -}}
-          {{- $parts = $parts | append (humanize $slug | title) -}}
-        {{- end -}}
+      {{- range $ref := $conts -}}
+        {{- $parts = $parts | append (partial "ref/link.html" (dict "ctx" $ctx "ref" $ref "subtype" "continent")) -}}
       {{- end -}}
       {{ delimit $parts ", " | safeHTML }}
     </dd>
