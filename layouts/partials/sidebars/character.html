@@ -29,7 +29,14 @@
 <aside class="info-sidebar">
 
   {{- /* ---- Portrait ---- */ -}}
-  {{- with .Params.slug }}
+  {{- /* Portrait artwork is a CDN object named after the slug the page had
+         when the image was uploaded. Deriving a page's URL from its name
+         (#1389) renames 229 pages but renames nothing on the CDN, so this
+         reads `artwork` — the recorded upload name, which the exporter fills
+         from scripts/legacy-slugs.json and which equals the current slug for
+         every page that has not moved. Reading .Params.slug here would 404
+         every moved portrait. */ -}}
+  {{- with (.Params.artwork | default .Params.slug) }}
   {{- $imgURL := printf "https://cdn.heroiclands.org/images/%s.webp" . }}
   <a class="info-portrait-link"
      href="{{ $imgURL }}"
