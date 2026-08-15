@@ -6,7 +6,7 @@
 
   Fields rendered (all optional — guards keep missing data silent):
     - Name
-    - World — single slug, rendered as a link when a matching page exists.
+    - World — single shortcode, rendered as a link when a matching page exists.
 */ -}}
 
 {{- $ctx := . -}}
@@ -27,7 +27,7 @@
     {{- with $world }}
     <dt>World</dt>
     <dd>
-      {{- $pg := first 1 (where $ctx.Site.RegularPages "Params.slug" .) -}}
+      {{- $pg := first 1 (where $ctx.Site.RegularPages "Params.shortcode" .) -}}
       {{- with index $pg 0 -}}
         <a href="{{ .Permalink }}">{{ .LinkTitle }}</a>
       {{- else -}}

@@ -10,9 +10,12 @@
   Shows the key polity frontmatter fields. Every section is guarded
   so missing data silently disappears.
 
-  Slug-valued fields (languages, pantheons, capital) are resolved to
-  real pages and rendered as links when a match exists. Unresolvable
-  slugs fall back to a humanized label.
+  Reference fields (languages, pantheons, capital) hold the target
+  page's `shortcode` — its stable identity, which a rename never
+  changes — and are resolved to real pages and rendered as links when a
+  match exists. An unresolvable reference falls back to a humanized
+  label, which means an authoring error shows up as an odd-looking row
+  rather than a missing one.
 */ -}}
 
 {{- $ctx := . -}}
@@ -41,17 +44,13 @@
        a glance. When unset, fall through to a plain "Type" row. The
        first entry of parent.polities is treated as the principal
        parent for display purposes. */ -}}
-{{- $parentSlug := "" -}}
-{{- if gt (len $parentPolities) 0 }}{{ $parentSlug = index $parentPolities 0 }}{{ end -}}
+{{- $parentCode := "" -}}
+{{- if gt (len $parentPolities) 0 }}{{ $parentCode = index $parentPolities 0 }}{{ end -}}
 {{- $parentPage := "" -}}
-{{- with $parentSlug -}}
-  {{- $pg := first 1 (where $ctx.Site.RegularPages "Params.slug" .) -}}
+{{- with $parentCode -}}
+  {{- $pg := first 1 (where $ctx.Site.RegularPages "Params.shortcode" .) -}}
   {{- with index $pg 0 -}}{{ $parentPage = . }}{{- end -}}
 {{- end -}}
-
-{{- /* Local helper: turn a slug into either a link (if a page with that
-       slug exists) or a humanized label. Returns HTML as a string. */ -}}
-{{- $slugLink := `` -}}
 
 <aside class="geo-infobox polity-infobox info-sidebar">
 
@@ -64,14 +63,14 @@
     <dd>{{ $name }}</dd>
 
     {{- with $sub }}
-      {{- if $parentSlug }}
+      {{- if $parentCode }}
         {{- /* Subordinate polity: collapse Type + parent into a single row. */ -}}
     <dt>{{ . | humanize | title }} of</dt>
     <dd>
       {{- with $parentPage -}}
         <a href="{{ .Permalink }}">{{ .LinkTitle }}</a>
       {{- else -}}
-        {{ $parentSlug | humanize | title }}
+        {{ $parentCode | humanize | title }}
       {{- end -}}
     </dd>
       {{- else }}
@@ -86,7 +85,7 @@
     {{- end }}
 
     {{- with $capital }}
-      {{- $pg := first 1 (where $ctx.Site.RegularPages "Params.slug" .) -}}
+      {{- $pg := first 1 (where $ctx.Site.RegularPages "Params.shortcode" .) -}}
     <dt>Capital</dt>
     <dd>
       {{- with index $pg 0 -}}
@@ -125,12 +124,12 @@
     <dt>Language{{ if gt (len $langs) 1 }}s{{ end }}</dt>
     <dd>
       {{- $parts := slice -}}
-      {{- range $slug := $langs -}}
-        {{- $pg := first 1 (where $ctx.Site.RegularPages "Params.slug" $slug) -}}
+      {{- range $code := $langs -}}
+        {{- $pg := first 1 (where $ctx.Site.RegularPages "Params.shortcode" $code) -}}
         {{- with index $pg 0 -}}
           {{- $parts = $parts | append (printf `<a href="%s">%s</a>` .Permalink .LinkTitle) -}}
         {{- else -}}
-          {{- $parts = $parts | append (humanize $slug | title) -}}
+          {{- $parts = $parts | append (humanize $code | title) -}}
         {{- end -}}
       {{- end -}}
       {{ delimit $parts ", " | safeHTML }}
@@ -141,12 +140,12 @@
     <dt>Pantheon{{ if gt (len $panths) 1 }}s{{ end }}</dt>
     <dd>
       {{- $parts := slice -}}
-      {{- range $slug := $panths -}}
-        {{- $pg := first 1 (where $ctx.Site.RegularPages "Params.slug" $slug) -}}
+      {{- range $code := $panths -}}
+        {{- $pg := first 1 (where $ctx.Site.RegularPages "Params.shortcode" $code) -}}
         {{- with index $pg 0 -}}
           {{- $parts = $parts | append (printf `<a href="%s">%s</a>` .Permalink .LinkTitle) -}}
         {{- else -}}
-          {{- $parts = $parts | append (humanize $slug | title) -}}
+          {{- $parts = $parts | append (humanize $code | title) -}}
         {{- end -}}
       {{- end -}}
       {{ delimit $parts ", " | safeHTML }}
@@ -160,12 +159,12 @@
     <dt>Region{{ if gt (len $regs) 1 }}s{{ end }}</dt>
     <dd>
       {{- $parts := slice -}}
-      {{- range $slug := $regs -}}
-        {{- $pg := first 1 (where $ctx.Site.RegularPages "Params.slug" $slug) -}}
+      {{- range $code := $regs -}}
+        {{- $pg := first 1 (where $ctx.Site.RegularPages "Params.shortcode" $code) -}}
         {{- with index $pg 0 -}}
           {{- $parts = $parts | append (printf `<a href="%s">%s</a>` .Permalink .LinkTitle) -}}
         {{- else -}}
-          {{- $parts = $parts | append (humanize $slug | title) -}}
+          {{- $parts = $parts | append (humanize $code | title) -}}
         {{- end -}}
       {{- end -}}
       {{ delimit $parts ", " | safeHTML }}
@@ -174,12 +173,12 @@
     <dt>Continent{{ if gt (len $conts) 1 }}s{{ end }}</dt>
     <dd>
       {{- $parts := slice -}}
-      {{- range $slug := $conts -}}
-        {{- $pg := first 1 (where $ctx.Site.RegularPages "Params.slug" $slug) -}}
+      {{- range $code := $conts -}}
+        {{- $pg := first 1 (where $ctx.Site.RegularPages "Params.shortcode" $code) -}}
         {{- with index $pg 0 -}}
           {{- $parts = $parts | append (printf `<a href="%s">%s</a>` .Permalink .LinkTitle) -}}
         {{- else -}}
-          {{- $parts = $parts | append (humanize $slug | title) -}}
+          {{- $parts = $parts | append (humanize $code | title) -}}
         {{- end -}}
       {{- end -}}
       {{ delimit $parts ", " | safeHTML }}

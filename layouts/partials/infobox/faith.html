@@ -21,8 +21,8 @@
                Used when no `img` is provided (e.g. the Kemetían
                pantheon, which uses hieroglyphic name-glyphs rather
                than figural art).
-    pantheon — Slug of the parent pantheon page; rendered as a link
-               when a page with that slug is found in the site.
+    pantheon — Shortcode of the parent pantheon page; rendered as a
+               link when a page with that shortcode is found in the site.
 */ -}}
 
 {{- $ctx := . -}}
@@ -34,7 +34,7 @@
 {{- $symbol := .Params.symbol -}}
 {{- $img := .Params.img -}}
 {{- $glyph := .Params.glyph -}}
-{{- $pantheonSlug := .Params.pantheon -}}
+{{- $pantheonCode := .Params.pantheon -}}
 
 {{- /* Resolve img URL — if img is set and not already absolute,
        prefix it with the CDN root so per-deity illustrations can be
@@ -49,12 +49,12 @@
   {{- end -}}
 {{- end -}}
 
-{{- /* Resolve the pantheon slug to a real page if one exists, so the
-       Pantheon row can be a link. Falls back to humanized slug text
+{{- /* Resolve the pantheon shortcode to a real page if one exists, so
+       the Pantheon row can be a link. Falls back to humanized text
        if the page isn't found. */ -}}
 {{- $pantheonPage := "" -}}
-{{- with $pantheonSlug -}}
-  {{- $pg := first 1 (where $ctx.Site.RegularPages "Params.slug" .) -}}
+{{- with $pantheonCode -}}
+  {{- $pg := first 1 (where $ctx.Site.RegularPages "Params.shortcode" .) -}}
   {{- with index $pg 0 -}}{{ $pantheonPage = . }}{{- end -}}
 {{- end -}}
 
@@ -112,7 +112,7 @@
     {{- with $pantheonPage }}
     <dt>Pantheon</dt>
     <dd><a href="{{ .Permalink }}">{{ .LinkTitle }}</a></dd>
-    {{- else }}{{- with $pantheonSlug }}
+    {{- else }}{{- with $pantheonCode }}
     <dt>Pantheon</dt>
     <dd>{{ . | humanize | title }}</dd>
     {{- end }}{{- end }}
