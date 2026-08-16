@@ -2,7 +2,7 @@
   Creature info sidebar — profile-card style.
 
   Layout:
-    1. Creature image          (https://cdn.heroiclands.org/images/{shortcode}.webp)
+    1. Creature image          (https://cdn.heroiclands.org/images/{shortcode}-portrait.webp)
     2. "Creature Profile"      header
     3. Profile header dl       (name / corpus)
     4. Attributes              auto-fit grid of label+value pairs
@@ -31,9 +31,12 @@
          follow identity: a slug changes whenever the page is retitled, and the
          portrait then 404s with no build error to say so — which is how
          `helthraals` and `nightwights` came to request images that were never
-         there. A shortcode never changes, so a rename cannot reach the art. */ -}}
+         there. A shortcode never changes, so a rename cannot reach the art.
+
+         The `-portrait` suffix says which image this is: a page also carries a
+         `-headshot` and a `-token`, so the role belongs in the filename. */ -}}
   {{- with .Params.shortcode }}
-  {{- $imgURL := printf "https://cdn.heroiclands.org/images/%s.webp" . }}
+  {{- $imgURL := printf "https://cdn.heroiclands.org/images/%s-portrait.webp" . }}
   <a class="info-portrait-link"
      href="{{ $imgURL }}"
      target="_blank"
