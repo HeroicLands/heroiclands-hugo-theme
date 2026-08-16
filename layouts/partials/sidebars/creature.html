@@ -2,7 +2,7 @@
   Creature info sidebar — profile-card style.
 
   Layout:
-    1. Creature image          (https://cdn.heroiclands.org/images/{slug}.webp)
+    1. Creature image          (https://cdn.heroiclands.org/images/{shortcode}.webp)
     2. "Creature Profile"      header
     3. Profile header dl       (name / corpus)
     4. Attributes              auto-fit grid of label+value pairs
@@ -27,7 +27,12 @@
 <aside class="info-sidebar">
 
   {{- /* ---- Creature image ---- */ -}}
-  {{- with .Params.slug }}
+  {{- /* Keyed on the shortcode, not the slug. A filename is storage and must
+         follow identity: a slug changes whenever the page is retitled, and the
+         portrait then 404s with no build error to say so — which is how
+         `helthraals` and `nightwights` came to request images that were never
+         there. A shortcode never changes, so a rename cannot reach the art. */ -}}
+  {{- with .Params.shortcode }}
   {{- $imgURL := printf "https://cdn.heroiclands.org/images/%s.webp" . }}
   <a class="info-portrait-link"
      href="{{ $imgURL }}"
