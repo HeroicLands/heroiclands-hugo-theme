@@ -3,7 +3,7 @@
 
   A floated card rendered at the top of a settlement page's main
   content column (type: doc, category: settlement). Mirrors the polity
-  infobox: a slug-driven profile card whose location/language/pantheon
+  infobox: a shortcode-driven profile card whose location/language/pantheon
   rows resolve to real pages and render as links when a match exists.
 
   Rows:
@@ -18,8 +18,8 @@
                      parent polities (nome/province → empire) and renders
                      the chain root→leaf as links joined by " — ", e.g.
                      "The Empire of Ta'Kheperu — The Capital Nome".
-    - Language     — languages slug(s) resolved to the language page(s)
-    - Pantheon     — pantheons slug(s) resolved to the pantheon page(s)
+    - Language     — languages shortcode(s) resolved to the language page(s)
+    - Pantheon     — pantheons shortcode(s) resolved to the pantheon page(s)
 
   Every section is guarded so missing data silently disappears.
 */ -}}
@@ -44,7 +44,7 @@
 {{- if gt (len $polities) 0 }}{{ $cur = index $polities 0 }}{{ end -}}
 {{- range (seq 6) -}}
   {{- with $cur -}}
-    {{- $pg := first 1 (where $ctx.Site.RegularPages "Params.slug" .) -}}
+    {{- $pg := first 1 (where $ctx.Site.RegularPages "Params.shortcode" .) -}}
     {{- with index $pg 0 -}}
       {{- $chain = (slice .) | append $chain -}}
       {{- $cur = "" -}}
@@ -90,12 +90,12 @@
     {{- else -}}
       {{- $regions := slice -}}
       {{- with .Params.parent }}{{- with .regions }}{{ $regions = . }}{{ end -}}{{- end -}}
-      {{- range $slug := $regions -}}
-        {{- $pg := first 1 (where $ctx.Site.RegularPages "Params.slug" $slug) -}}
+      {{- range $code := $regions -}}
+        {{- $pg := first 1 (where $ctx.Site.RegularPages "Params.shortcode" $code) -}}
         {{- with index $pg 0 -}}
           {{- $locParts = $locParts | append (printf `<a href="%s">%s</a>` .Permalink .LinkTitle) -}}
         {{- else -}}
-          {{- $locParts = $locParts | append (humanize $slug | title) -}}
+          {{- $locParts = $locParts | append (humanize $code | title) -}}
         {{- end -}}
       {{- end -}}
     {{- end -}}
@@ -108,12 +108,12 @@
     <dt>Language{{ if gt (len $langs) 1 }}s{{ end }}</dt>
     <dd>
       {{- $parts := slice -}}
-      {{- range $slug := $langs -}}
-        {{- $pg := first 1 (where $ctx.Site.RegularPages "Params.slug" $slug) -}}
+      {{- range $code := $langs -}}
+        {{- $pg := first 1 (where $ctx.Site.RegularPages "Params.shortcode" $code) -}}
         {{- with index $pg 0 -}}
           {{- $parts = $parts | append (printf `<a href="%s">%s</a>` .Permalink .LinkTitle) -}}
         {{- else -}}
-          {{- $parts = $parts | append (humanize $slug | title) -}}
+          {{- $parts = $parts | append (humanize $code | title) -}}
         {{- end -}}
       {{- end -}}
       {{ delimit $parts ", " | safeHTML }}
@@ -124,12 +124,12 @@
     <dt>Pantheon{{ if gt (len $panths) 1 }}s{{ end }}</dt>
     <dd>
       {{- $parts := slice -}}
-      {{- range $slug := $panths -}}
-        {{- $pg := first 1 (where $ctx.Site.RegularPages "Params.slug" $slug) -}}
+      {{- range $code := $panths -}}
+        {{- $pg := first 1 (where $ctx.Site.RegularPages "Params.shortcode" $code) -}}
         {{- with index $pg 0 -}}
           {{- $parts = $parts | append (printf `<a href="%s">%s</a>` .Permalink .LinkTitle) -}}
         {{- else -}}
-          {{- $parts = $parts | append (humanize $slug | title) -}}
+          {{- $parts = $parts | append (humanize $code | title) -}}
         {{- end -}}
       {{- end -}}
       {{ delimit $parts ", " | safeHTML }}
