@@ -1,28 +1,38 @@
 {{- /*
-  Faith infobox — floated card on pages with `type: faith`. Presents
-  the deity's glyph icon at the top of the card, then a compact
-  profile grid: deity name, epithet, domain, symbol, pantheon link.
+  Affiliation infobox — floated card on pages with `type: affiliation`.
 
-  Fields read from frontmatter (all optional; rows silently skip
-  when missing):
-    deity    — The deity's name (e.g. "Ánubís").
-    epithet  — The deity's epithet (e.g. "The Keeper of Transitions").
-    domain   — Single-word or short phrase (e.g. "Decay").
-    symbol   — Prose description of the deity's iconographic symbol
-               (e.g. "A jackal's head cradling a crescent moon").
-    img      — Per-deity illustration (URL fragment or full URL). If
-               present, takes precedence over `glyph` and renders as
-               a full-color deity portrait at the top of the infobox
-               without the limestone-tablet framing. Used by the
-               Aurèldían and Asguardian faiths which have custom art.
-    glyph    — Slug of a hieroglyphic name SVG; resolves to
-               https://cdn.heroiclands.org/icons/<glyph>.svg and
-               renders inside a .glyph-tablet at the top of the card.
-               Used when no `img` is provided (e.g. the Kemetían
-               pantheon, which uses hieroglyphic name-glyphs rather
-               than figural art).
-    pantheon — Shortcode of the parent pantheon page; rendered as a
-               link when a page with that shortcode is found in the site.
+  An affiliation is any organized body a character can belong to: a religion
+  or church, a school of magic, a spirit tradition, or a secular guild, bank,
+  syndicate, house, or military unit. Which one it is comes from
+  `sohl.subType`; there is no separate "faith" kind of page, and a religion is
+  an affiliation and nothing more. The practices of its rites are a skill, and
+  the powers it grants are mystical abilities — both separate documents.
+
+  Fields read from frontmatter (all optional; rows silently skip when
+  missing). The first two apply to every affiliation; the rest are meaningful
+  only for a deity-facing one and are simply absent elsewhere.
+
+    name.full  — The body's name (falls back to the page title).
+    sohl.subType
+               — divine | arcane | spirit | social, rendered as a label.
+    deity      — The deity's name (e.g. "Ánubís").
+    epithet    — The deity's epithet (e.g. "The Keeper of Transitions").
+    domain     — Single-word or short phrase (e.g. "Decay").
+    symbol     — Prose description of the deity's iconographic symbol
+                 (e.g. "A jackal's head cradling a crescent moon").
+    img        — Per-body illustration (URL fragment or full URL). If
+                 present, takes precedence over `glyph` and renders as
+                 a full-color portrait at the top of the infobox
+                 without the limestone-tablet framing. Used by the
+                 Aurèldían and Asguardian religions which have custom art.
+    glyph      — Slug of a hieroglyphic name SVG; resolves to
+                 https://cdn.heroiclands.org/icons/<glyph>.svg and
+                 renders inside a .glyph-tablet at the top of the card.
+                 Used when no `img` is provided (e.g. the Kemetían
+                 religion, which uses hieroglyphic name-glyphs rather
+                 than figural art).
+    pantheon   — Shortcode of the parent pantheon; rendered as a link when a
+                 page with that shortcode is found in the site.
 */ -}}
 
 {{- $ctx := . -}}
@@ -35,6 +45,14 @@
 {{- $img := .Params.img -}}
 {{- $glyph := .Params.glyph -}}
 {{- $pantheonCode := .Params.pantheon -}}
+{{- $kind := "" -}}
+{{- with .Params.sohl }}{{- with .subType }}
+  {{- $kind = index (dict
+      "divine" "Religion"
+      "arcane" "School of Magic"
+      "spirit" "Spirit Tradition"
+      "social" "Secular Body") . | default (humanize . | title) -}}
+{{- end }}{{- end -}}
 
 {{- /* Resolve img URL — if img is set and not already absolute,
        prefix it with the CDN root so per-deity illustrations can be
@@ -58,13 +76,13 @@
   {{- with index $pg 0 -}}{{ $pantheonPage = . }}{{- end -}}
 {{- end -}}
 
-<aside class="geo-infobox faith-infobox info-sidebar">
+<aside class="geo-infobox affiliation-infobox info-sidebar">
 
   {{- /* Portrait above the title (when `img` is set). Max 150×150,
          centered within the card padding — not a bleed-to-edges
          treatment like character/creature profiles use. */ -}}
   {{- if $imgURL }}
-  <div class="faith-portrait">
+  <div class="affiliation-portrait">
     <img src="{{ $imgURL }}"
          alt="{{ $deity | default $name }}"
          loading="lazy" />
@@ -72,14 +90,14 @@
   {{- end }}
 
   <header class="info-sidebar-title">
-    <h2>Faith Profile</h2>
+    <h2>Affiliation Profile</h2>
   </header>
 
   {{- /* Glyph below the title (when `glyph` is set). Independent
          of `img` — a deity can have both: portrait above the header,
          hieroglyphic name-cluster below it. */ -}}
   {{- if $glyph }}
-  <div class="faith-glyph">
+  <div class="affiliation-glyph">
     <span class="glyph glyph-tablet">
       <img src="{{ $cdn }}/icons/{{ $glyph }}.svg"
            alt="{{ $deity | default $name }}"
@@ -89,6 +107,14 @@
   {{- end }}
 
   <dl class="info-profile-grid">
+    <dt>Name</dt>
+    <dd>{{ $name }}</dd>
+
+    {{- with $kind }}
+    <dt>Kind</dt>
+    <dd>{{ . }}</dd>
+    {{- end }}
+
     {{- with $deity }}
     <dt>Deity</dt>
     <dd>{{ . }}</dd>
