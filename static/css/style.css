@@ -1207,29 +1207,6 @@ a.tag:hover {
   font-style: italic;
 }
 
-.info-faith-list {
-  display: flex;
-  flex-direction: column;
-  gap: 0.3rem;
-}
-
-.info-faith-item {
-  display: flex;
-  flex-direction: column;
-  gap: 0.1rem;
-}
-
-.info-faith-name {
-  color: var(--text);
-  line-height: 1.3;
-}
-
-.info-faith-pantheon {
-  color: var(--text-muted);
-  font-size: 0.78rem;
-  font-style: italic;
-}
-
 /* Composed appearance sentence */
 .info-appearance {
   margin: 0 0 1.25rem;
@@ -1968,22 +1945,22 @@ a.tag:hover {
   }
 }
 
-/* Faith infobox icons. Independent — a faith page can have either,
+/* Affiliation infobox icons. Independent — a page can have either,
    both, or neither.
-   - .faith-portrait (img field) sits ABOVE the "Faith Profile"
-     title at the top of the card. Constrained to 150×150 max,
+   - .affiliation-portrait (img field) sits ABOVE the "Affiliation
+     Profile" title at the top of the card. Constrained to 150×150 max,
      centered within the card's padding.
-   - .faith-glyph (glyph field) sits BELOW the title's dividing
+   - .affiliation-glyph (glyph field) sits BELOW the title's dividing
      line, using the same limestone tablet as the pantheon table. */
 
-.faith-portrait {
+.affiliation-portrait {
   display: flex;
   justify-content: center;
   margin: 0 0 1rem;
   line-height: 0;
 }
 
-.faith-portrait img {
+.affiliation-portrait img {
   display: block;
   max-width: 150px;
   max-height: 150px;
@@ -1995,7 +1972,7 @@ a.tag:hover {
   margin: 0;
 }
 
-.faith-glyph {
+.affiliation-glyph {
   display: flex;
   justify-content: center;
   margin: 0 0 0.8rem;

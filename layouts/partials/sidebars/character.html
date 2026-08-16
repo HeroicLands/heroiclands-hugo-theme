@@ -5,7 +5,7 @@
     1. Portrait                (https://cdn.heroiclands.org/images/{slug}.webp)
     2. "Character Profile"     header
     3. Profile header dl       (name / corpus / gender / born / occupation /
-                                class / realm / faith)
+                                class / realm / affiliations)
     4. Appearance              one-line composed sentence built from
                                 age, height, weight, frame, eye/hair/skin colors
     5. Attributes              auto-fit grid of label+value pairs
@@ -49,8 +49,27 @@
 
   {{- /* ---- Profile header (name, corpus, gender, born, occupation, ...) ---- */ -}}
   {{- $birthday := "" -}}{{- with $traits.birthday }}{{ $birthday = . }}{{ end -}}
-  {{- $hasFaith := false -}}
-  {{- with .Params.thalorna }}{{- with .faith }}{{- if gt (len .) 0 }}{{ $hasFaith = true }}{{ end }}{{ end }}{{ end -}}
+  {{- /* A character's religion is not a property of the character. It is an
+         affiliation they hold — which carries their standing within the body —
+         so it is read off `sohl.items`, alongside their skills and gear,
+         rather than from a `faith` field that duplicated it. Resolve each to
+         its page so the row links. */ -}}
+  {{- $affiliations := slice -}}
+  {{- $ctx := . -}}
+  {{- with .Params.sohl }}{{- with .items -}}
+    {{- range . -}}
+      {{- if eq (.type | default "") "affiliation" -}}
+        {{- with .shortcode -}}
+          {{- $pg := first 1 (where $ctx.Site.RegularPages "Params.shortcode" .) -}}
+          {{- with index $pg 0 -}}
+            {{- $affiliations = $affiliations | append (printf `<a href="%s">%s</a>` .Permalink .LinkTitle) -}}
+          {{- else -}}
+            {{- $affiliations = $affiliations | append (humanize . | title) -}}
+          {{- end -}}
+        {{- end -}}
+      {{- end -}}
+    {{- end -}}
+  {{- end }}{{- end -}}
   <dl class="info-profile-grid">
     {{- with .Params.name }}{{- with .full }}
     <dt>Name</dt>
@@ -87,23 +106,9 @@
     <dd>{{ . }}</dd>
     {{- end }}
 
-    {{- if $hasFaith }}
-    <dt>Faith</dt>
-    <dd class="info-faith-list">
-      {{- range .Params.thalorna.faith -}}
-        {{- $parts := split . ":" -}}
-        {{- if eq (len $parts) 2 }}
-        <div class="info-faith-item">
-          <span class="info-faith-name">{{ index $parts 1 }}</span>
-          <span class="info-faith-pantheon">{{ index $parts 0 }}</span>
-        </div>
-        {{- else }}
-        <div class="info-faith-item">
-          <span class="info-faith-name">{{ . }}</span>
-        </div>
-        {{- end }}
-      {{- end }}
-    </dd>
+    {{- if gt (len $affiliations) 0 }}
+    <dt>Affiliation{{ if gt (len $affiliations) 1 }}s{{ end }}</dt>
+    <dd>{{ delimit $affiliations ", " | safeHTML }}</dd>
     {{- end }}
   </dl>
 
