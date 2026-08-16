@@ -26,7 +26,7 @@
 {{- if .IsHome -}}{{- return -}}{{- end -}}
 {{- $type := .Params.type | default "" -}}
 {{- $category := .Params.category | default "" -}}
-{{- $isCollection := and (eq $type "doc") (eq $category "collection") -}}
+{{- $isCollection := eq $category "collection" -}}
 
 {{- /* Curated labels for compound types under /hm3/ */ -}}
 {{- $compoundLabels := dict
@@ -55,14 +55,13 @@
       {{- if $compound -}}
         {{- $section = $compound -}}
       {{- else -}}
-        {{- /* Package-driven: middle = category for doc, otherwise the type. */ -}}
+        {{- /* Package-driven: middle = category when the note declares one
+               (narrative content, and setting notes whose type belongs to
+               the game system), otherwise the type. Mirrors the exporter's
+               CATEGORY_ROUTED_TYPES dispatch — the crumb has to name the
+               section the page actually publishes into. */ -}}
         {{- $pkg := .Params.package | default "" -}}
-        {{- $middle := "" -}}
-        {{- if eq $type "doc" -}}
-          {{- $middle = $category -}}
-        {{- else -}}
-          {{- $middle = $type -}}
-        {{- end -}}
+        {{- $middle := cond (ne $category "") $category $type -}}
         {{- if and (ne $pkg "") (ne $middle "") -}}
           {{- $pkgLabel := index $packageLabels $pkg | default (title $pkg) -}}
           {{- $middleLabel := replace $middle "-" " " | title -}}

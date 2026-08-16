@@ -7,8 +7,16 @@
        label (e.g. continent/region/polity/faith). Structured content
        (character/creature/gear) keeps its own type. $subtype collapses
        both shapes into a single value so the dispatch below doesn't
-       need to know which shape a given page uses. */ -}}
-{{- $subtype := cond (eq $type "doc") (.Params.category | default "") $type -}}
+       need to know which shape a given page uses.
+
+       A category wins wherever one is present, not only when the type
+       is `doc`. Some setting notes are also game-system items and so
+       have their type spoken for — an Aurèldían faith is `type:
+       affiliation` because the thalorna module compiles it into an
+       Affiliation item — while still being a faith page to a reader.
+       Keying on `doc` alone left those pages with no infobox at all. */ -}}
+{{- $category := .Params.category | default "" -}}
+{{- $subtype := cond (ne $category "") $category $type -}}
 {{- $gearTypes := slice "weapongear" "armorgear" "miscgear" "containergear" "projectilegear" "concoctiongear" -}}
 {{- $hasSidebar := or (eq $type "character") (eq $type "creature") (in $gearTypes $type) -}}
 

@@ -25,11 +25,14 @@
     {{- $banner = printf "%s/%s" $cdn (strings.TrimPrefix "/" $b) -}}
   {{- end -}}
 {{- else -}}
-  {{- /* For narrative content (type=doc) the meaningful kind of page
-         lives in `category` — continent, region, polity, faith, lore,
-         etc. — so prefer that when picking a default banner. */ -}}
+  {{- /* For narrative content the meaningful kind of page lives in
+         `category` — continent, region, polity, faith, pantheon, lore,
+         etc. — so prefer that whenever one is present, whatever the
+         type. A note that is also a game-system item (type:
+         affiliation) still banners as the faith or pantheon it is. */ -}}
   {{- $type := .Params.type | default "" -}}
-  {{- $subtype := cond (eq $type "doc") (.Params.category | default "") $type -}}
+  {{- $category := .Params.category | default "" -}}
+  {{- $subtype := cond (ne $category "") $category $type -}}
   {{- if not $subtype }}{{ $subtype = "default" }}{{ end -}}
   {{- $banner = printf "%s/banners/%s.webp" $cdn $subtype -}}
 {{- end -}}
