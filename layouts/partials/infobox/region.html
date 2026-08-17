@@ -6,15 +6,26 @@
 
   Fields rendered (all optional — guards keep missing data silent):
     - Name
+    - Region(s) — the region(s) this one sits inside, when it is nested.
     - Continent(s) — a shortcode list, rendered as links when a matching
       page exists.
+
+  A region may sit inside another region: Heliónis inside Hellád, Ta'Kheperu
+  inside the Northern Fertile Region. That middle link used to be dropped —
+  the card jumped straight to the continent — so a nested region's own
+  `parent.regions` was recorded and never shown, and the chain a reader could
+  walk had a hole in it.
 */ -}}
 
 {{- $ctx := . -}}
 {{- $name   := "" -}}{{- with .Params.name.full }}{{ $name = . }}{{ end -}}
 {{- if not $name }}{{ $name = .Title }}{{ end -}}
+{{- $regs   := slice -}}
 {{- $conts  := slice -}}
-{{- with .Params.parent }}{{- with .continents }}{{ $conts = . }}{{ end }}{{ end -}}
+{{- with .Params.parent -}}
+  {{- with .regions    }}{{ $regs = . }}{{ end -}}
+  {{- with .continents }}{{ $conts = . }}{{ end -}}
+{{- end -}}
 
 <aside class="geo-infobox region-infobox info-sidebar">
 
@@ -25,6 +36,25 @@
   <dl class="info-profile-grid">
     <dt>Name</dt>
     <dd>{{ $name }}</dd>
+
+    {{- if gt (len $regs) 0 }}
+    <dt>Region{{ if gt (len $regs) 1 }}s{{ end }}</dt>
+    <dd>
+      {{- /* Narrowed by category: a shortcode is unique within a type, not
+             across the site, so an unnarrowed lookup can reach a polity of
+             the same name instead of the region above this one. */ -}}
+      {{- $parts := slice -}}
+      {{- range $code := $regs -}}
+        {{- $pg := first 1 (where (where $ctx.Site.RegularPages "Params.shortcode" $code) "Params.category" "region") -}}
+        {{- with index $pg 0 -}}
+          {{- $parts = $parts | append (printf `<a href="%s">%s</a>` .Permalink .LinkTitle) -}}
+        {{- else -}}
+          {{- $parts = $parts | append (humanize $code | title) -}}
+        {{- end -}}
+      {{- end -}}
+      {{ delimit $parts ", " | safeHTML }}
+    </dd>
+    {{- end }}
 
     {{- if gt (len $conts) 0 }}
     <dt>Continent{{ if gt (len $conts) 1 }}s{{ end }}</dt>
