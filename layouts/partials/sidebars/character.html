@@ -5,7 +5,7 @@
     1. Portrait                (https://cdn.heroiclands.org/images/being/{shortcode}-portrait.webp)
     2. "Character Profile"     header
     3. Profile header dl       (name / corpus / gender / born / occupation /
-                                class / realm / affiliations)
+                                class / realm / region / affiliations)
     4. Appearance              one-line composed sentence built from
                                 age, height, weight, frame, eye/hair/skin colors
     5. Attributes              auto-fit grid of label+value pairs
@@ -82,6 +82,39 @@
       {{- end -}}
     {{- end -}}
   {{- end }}{{- end -}}
+
+  {{- /* Where the character is from. Both values are shortcodes — identity,
+         which survives a retitle — so each joins on `Params.shortcode` the way
+         the geographic infoboxes already do, and links.
+
+         The join is narrowed by `category` because a shortcode is unique
+         within a type, not across the site: `kalihara` names a polity, and
+         resolving a *region* to it is how a region row came to link at a
+         country. A value that reaches no page of the right category falls back
+         to humanised text, which is what these rows rendered unconditionally
+         before — the values were slug-valued and matched nothing, and the
+         fallback made every one of them look like the link it was standing in
+         for (#1426). */ -}}
+  {{- $realm  := "" -}}
+  {{- $region := "" -}}
+  {{- with .Params.thalorna -}}
+    {{- with .realm -}}
+      {{- $pg := first 1 (where (where $ctx.Site.RegularPages "Params.shortcode" .) "Params.category" "polity") -}}
+      {{- with index $pg 0 -}}
+        {{- $realm = printf `<a href="%s">%s</a>` .Permalink .LinkTitle -}}
+      {{- else -}}
+        {{- $realm = humanize . | title -}}
+      {{- end -}}
+    {{- end -}}
+    {{- with .region -}}
+      {{- $pg := first 1 (where (where $ctx.Site.RegularPages "Params.shortcode" .) "Params.category" "region") -}}
+      {{- with index $pg 0 -}}
+        {{- $region = printf `<a href="%s">%s</a>` .Permalink .LinkTitle -}}
+      {{- else -}}
+        {{- $region = humanize . | title -}}
+      {{- end -}}
+    {{- end -}}
+  {{- end -}}
   <dl class="info-profile-grid">
     {{- with .Params.name }}{{- with .full }}
     <dt>Name</dt>
@@ -113,9 +146,14 @@
     <dd>{{ . | humanize | title }}</dd>
     {{- end }}
 
-    {{- with .Params.thalorna.realm }}
+    {{- with $realm }}
     <dt>Realm</dt>
-    <dd>{{ . }}</dd>
+    <dd>{{ . | safeHTML }}</dd>
+    {{- end }}
+
+    {{- with $region }}
+    <dt>Region</dt>
+    <dd>{{ . | safeHTML }}</dd>
     {{- end }}
 
     {{- if gt (len $affiliations) 0 }}
