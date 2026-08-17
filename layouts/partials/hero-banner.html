@@ -5,24 +5,23 @@
   classes as the homepage) with a centered page title and description
   above the content.
 
+  Every path below resolves through cdn-url.html against the consuming
+  site's `params.cdnBaseURL`; the theme names no host of its own.
+
   Banner image resolution order:
-    1. .Params.banner                                          — author-specified override (frontmatter).
-                                                                 If it's a full URL, use as-is; otherwise
-                                                                 treat as a CDN fragment relative to
-                                                                 https://cdn.heroiclands.org/images/.
-    2. https://cdn.heroiclands.org/images/banners/{subtype}.webp — subtype-specific default,
-                                                                  where subtype = category for
-                                                                  type=doc pages, otherwise type
-    3. https://cdn.heroiclands.org/images/banners/default.webp  — fallback when the page has no type
+    1. .Params.banner              — author-specified override (frontmatter).
+                                     If it's a full URL, use as-is; otherwise
+                                     treat as a fragment under images/.
+    2. images/banners/{subtype}.webp — subtype-specific default, where
+                                     subtype = category for type=doc pages,
+                                     otherwise type
+    3. images/banners/default.webp — fallback when the page has no type
 */ -}}
-{{- $cdn := "https://cdn.heroiclands.org/images" -}}
 {{- $banner := "" -}}
 {{- with .Params.banner -}}
-  {{- $b := . -}}
-  {{- if or (hasPrefix $b "http://") (hasPrefix $b "https://") -}}
-    {{- $banner = $b -}}
-  {{- else -}}
-    {{- $banner = printf "%s/%s" $cdn (strings.TrimPrefix "/" $b) -}}
+  {{- $banner = printf "images/%s" (strings.TrimPrefix "/" .) -}}
+  {{- if or (hasPrefix . "http://") (hasPrefix . "https://") -}}
+    {{- $banner = . -}}
   {{- end -}}
 {{- else -}}
   {{- /* For narrative content (type=doc) the meaningful kind of page
@@ -31,10 +30,11 @@
   {{- $type := .Params.type | default "" -}}
   {{- $subtype := cond (eq $type "doc") (.Params.category | default "") $type -}}
   {{- if not $subtype }}{{ $subtype = "default" }}{{ end -}}
-  {{- $banner = printf "%s/banners/%s.webp" $cdn $subtype -}}
+  {{- $banner = printf "images/banners/%s.webp" $subtype -}}
 {{- end -}}
+{{- $bannerURL := partial "cdn-url.html" (dict "site" .Site "path" $banner) -}}
 
-<section class="hero hero-with-image" style="background-image: url('{{ $banner }}');">
+<section class="hero hero-with-image" style="background-image: url('{{ $bannerURL }}');">
   <div class="hero-inner">
     <h1>{{ .Title }}</h1>
     {{- with .Params.description }}

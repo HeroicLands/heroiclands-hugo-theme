@@ -30,8 +30,8 @@
 
 {{- /* Curated labels for compound types under /hm3/ */ -}}
 {{- $compoundLabels := dict
-  "hm3-rules"       (dict "label" "HM3 Rules"       "url" "/hm3/rules/")
-  "hm3-user-guide"  (dict "label" "HM3 User Guide"  "url" "/hm3/user-guide/")
+  "hm3-rules"       (dict "label" "HM3 Rules"       "url" ("hm3/rules/"      | relURL))
+  "hm3-user-guide"  (dict "label" "HM3 User Guide"  "url" ("hm3/user-guide/" | relURL))
 -}}
 
 {{- /*
@@ -48,7 +48,7 @@
 
 <nav class="breadcrumbs" aria-label="Breadcrumb">
   <ol>
-    <li><a href="/">Home</a></li>
+    <li><a href="{{ .Site.Home.RelPermalink }}">Home</a></li>
     {{- if and (ne $type "") (not $isCollection) -}}
       {{- $section := "" -}}
       {{- $compound := index $compoundLabels $type -}}
@@ -68,7 +68,7 @@
           {{- $middleLabel := replace $middle "-" " " | title -}}
           {{- $section = dict
               "label" (printf "%s %s" $pkgLabel $middleLabel)
-              "url"   (printf "/%s/%s/" $pkg $middle) -}}
+              "url"   (printf "%s/%s/" $pkg $middle | relURL) -}}
         {{- end -}}
       {{- end -}}
       {{- if $section -}}

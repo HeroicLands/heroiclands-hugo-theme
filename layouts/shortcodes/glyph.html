@@ -23,9 +23,9 @@
               standalone). Default sits at 1.8em height.
     alt     - Screen-reader text. Defaults to humanized slug.
 
-  SVG source: https://cdn.heroiclands.org/icons/<slug>.svg
+  SVG source: icons/<slug>.svg, resolved against the consuming site's
+  `params.cdnBaseURL` — the theme names no host of its own.
 */ -}}
-{{- $cdn := "https://cdn.heroiclands.org/icons" -}}
 {{- $slug := .Get "slug" -}}
 {{- if not $slug }}{{ $slug = .Get 0 }}{{ end -}}
 {{- if not $slug -}}
@@ -35,7 +35,7 @@
 {{- $alt   := .Get "alt"   | default $altDefault -}}
 {{- $frame := .Get "frame" | default "" -}}
 {{- $size  := .Get "size"  | default "" -}}
-{{- $src   := printf "%s/%s.svg" $cdn $slug -}}
+{{- $src   := partial "cdn-url.html" (dict "site" .Site "path" (printf "icons/%s.svg" $slug)) -}}
 {{- $classes := slice "glyph" -}}
 {{- with $frame }}{{ $classes = $classes | append (printf "glyph-%s" .) }}{{ end -}}
 {{- with $size  }}{{ $classes = $classes | append (printf "glyph-%s" .) }}{{ end -}}

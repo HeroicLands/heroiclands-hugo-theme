@@ -45,7 +45,7 @@
 {{- $align  := .Get "align"   | default "" -}}
 {{- $cap    := .Get "caption" | default "" -}}
 {{- $height := .Get "height"  | default "" -}}
-{{- $src    := printf "/img/cartouches/%s.svg" $slug -}}
+{{- $src    := printf "img/cartouches/%s.svg" $slug | relURL -}}
 {{- $classes := slice "cartouche" -}}
 {{- with $size  }}{{ $classes = $classes | append (printf "cartouche-%s" .) }}{{ end -}}
 {{- with $align }}{{ $classes = $classes | append (printf "cartouche-%s" .) }}{{ end -}}

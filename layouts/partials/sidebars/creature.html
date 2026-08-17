@@ -2,7 +2,7 @@
   Creature info sidebar — profile-card style.
 
   Layout:
-    1. Creature image          (https://cdn.heroiclands.org/images/being/{shortcode}-portrait.webp)
+    1. Creature image          (images/being/{shortcode}-portrait.webp on the site's asset host)
     2. "Creature Profile"      header
     3. Profile header dl       (name / corpus)
     4. Attributes              auto-fit grid of label+value pairs
@@ -40,7 +40,7 @@
          shortcode is unique within a type, not globally — `boar` is both a
          creature and a totem — so the type owns the directory. */ -}}
   {{- with .Params.shortcode }}
-  {{- $imgURL := printf "https://cdn.heroiclands.org/images/being/%s-portrait.webp" . }}
+  {{- $imgURL := partial "cdn-url.html" (dict "site" $.Site "path" (printf "images/being/%s-portrait.webp" .)) }}
   <a class="info-portrait-link"
      href="{{ $imgURL }}"
      target="_blank"

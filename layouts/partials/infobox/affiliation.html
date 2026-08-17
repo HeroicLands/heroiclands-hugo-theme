@@ -26,7 +26,7 @@
                  without the limestone-tablet framing. Used by the
                  Aurèldían and Asguardian religions which have custom art.
     glyph      — Slug of a hieroglyphic name SVG; resolves to
-                 https://cdn.heroiclands.org/icons/<glyph>.svg and
+                 icons/<glyph>.svg on the site's asset host and
                  renders inside a .glyph-tablet at the top of the card.
                  Used when no `img` is provided (e.g. the Kemetían
                  religion, which uses hieroglyphic name-glyphs rather
@@ -54,17 +54,12 @@
       "social" "Secular Body") . | default (humanize . | title) -}}
 {{- end }}{{- end -}}
 
-{{- /* Resolve img URL — if img is set and not already absolute,
-       prefix it with the CDN root so per-deity illustrations can be
-       referenced by fragment (e.g. "images/janus.webp"). */ -}}
-{{- $cdn := "https://cdn.heroiclands.org" -}}
+{{- /* Resolve img URL — a fragment (e.g. "images/janus.webp") resolves
+       against the consuming site's asset host, an absolute URL is used
+       as-is. See partials/cdn-url.html. */ -}}
 {{- $imgURL := "" -}}
 {{- with $img -}}
-  {{- if or (hasPrefix . "http://") (hasPrefix . "https://") -}}
-    {{- $imgURL = . -}}
-  {{- else -}}
-    {{- $imgURL = printf "%s/%s" $cdn (strings.TrimPrefix "/" .) -}}
-  {{- end -}}
+  {{- $imgURL = partial "cdn-url.html" (dict "site" $ctx.Site "path" .) -}}
 {{- end -}}
 
 {{- /* Resolve the pantheon shortcode to a real page if one exists, so
@@ -99,7 +94,7 @@
   {{- if $glyph }}
   <div class="affiliation-glyph">
     <span class="glyph glyph-tablet">
-      <img src="{{ $cdn }}/icons/{{ $glyph }}.svg"
+      <img src="{{ partial "cdn-url.html" (dict "site" $ctx.Site "path" (printf "icons/%s.svg" $glyph)) }}"
            alt="{{ $deity | default $name }}"
            loading="lazy" />
     </span>
