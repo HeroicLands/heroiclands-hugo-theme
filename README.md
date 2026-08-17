@@ -24,6 +24,29 @@ configuration, and internal links resolve through `relURL` / `.RelPermalink`,
 so the theme renders correctly under a bare root **and** under a `baseURL`
 carrying a path prefix (`https://example.org/sohl/`).
 
+## What belongs here, and what belongs in a consumer
+
+Three repositories render pages through this one theme, so a layout in the
+wrong place costs something either way. A layout duplicated across consumers
+drifts — the same failure the address rule removes at the hostname level. A
+layout pushed in here that only one consumer uses makes the theme a dumping
+ground and couples the others to changes they did not ask for.
+
+The test is **whether a second consumer would need the same template**, not
+whether it looks reusable (issue #1454):
+
+- **Here:** the chrome and the generic page shapes — `baseof`, `_default/`,
+  `404.html`, the home layout, breadcrumbs, hero, TOC, related, and the
+  info-block partials driven by frontmatter every consumer's content carries.
+- **In the consumer:** templates that render one repository's content and
+  nothing else's — per-type section landings (`weapongear/`, `creature/`, …),
+  the partials those landings share, a site-specific home page, and any data
+  file describing that repository's own material.
+
+A consumer overriding a template that is generic is the signal it belongs
+here; a template here that only one consumer's content can satisfy is the
+signal it should move out.
+
 ## Use
 
 Add as a submodule and set the theme:
@@ -79,6 +102,29 @@ baseURL = "https://example.org/"        # or "https://example.org/sohl/"
       title = "Knowledgebase"
       url   = "https://kb.example.org/"
       image = "images/banners/rules.webp"
+      text  = "…"
+
+  # Listing rows (partials/catalog-rows.html). A reference catalog shows
+  # "Name (shortcode)" so a reader can map a page to the identifier the
+  # system uses for it; a narrative site leaves this unset and gets plain
+  # titles, which is what a tag listing should show.
+  [params.list]
+    shortcodes = true
+
+  # The "page not found" page (layouts/404.html). Hugo renders it to
+  # public/404.html, which a static host serves — with a real HTTP 404 — for
+  # any unpublished path. Omit it and the page still renders, with generic
+  # wording and no list of routes back.
+  [params.notfound]
+    heroimage = "images/banners/default.webp"  # CDN-relative or absolute
+    tagline   = "This site has no page at"     # precedes the failed address
+    sitenoun  = "site"                         # used in the body prose
+
+    # Routes back into the site. `url` is resolved with relURL unless it is
+    # already absolute, so these survive a baseURL carrying a path prefix.
+    [[params.notfound.links]]
+      title = "Home"
+      url   = "/"
       text  = "…"
 
 # The brand navigation. Absolute URLs when the entries cross hosts, so one
