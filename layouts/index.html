@@ -1,42 +1,57 @@
+{{- /*
+  Home layout — the featured grid of entry points into whatever this site
+  publishes.
+
+  The theme owns the arrangement; the consuming site owns every address and
+  every word, under `params.home`:
+
+    heroimage    Banner behind the hero band. Resolved through cdn-url.html,
+                 so it may be absolute or relative to `params.cdnBaseURL`.
+    herotitle    Hero heading.
+    herotagline  Hero standfirst.
+    headings     Column headings across the top row of the featured grid.
+                 Each: `title`, and an optional `class`, appended as
+                 `home-section-title--<class>` for grid placement.
+    cards        The entry-point cards. Each: `title`, `url`, `text`, and
+                 optional `image`, `alt` (image alt text, defaulting to
+                 `title`) and `key` (appended as `home-card--<key>` for
+                 grid placement).
+
+  Headings and cards render flat, as direct children of `.home-featured`,
+  because they are the grid's items — the CSS places each one by its
+  modifier class.
+*/ -}}
 {{ define "main" }}
-<section class="hero hero-with-image" style="background-image: url('https://cdn.heroiclands.org/images/brand/sohl-banner.webp');">
+{{- with .Site.Params.home }}
+<section class="hero hero-with-image"{{ with .heroimage }} style="background-image: url('{{ partial "cdn-url.html" (dict "site" $.Site "path" .) }}');"{{ end }}>
   <div class="hero-inner">
-    <h1>Explore Heroic Lands</h1>
-    <p class="hero-tagline">Dive into a richly immersive RPG setting that blends historical realism with deep fantasy, where heroism is forged through adversity and destiny awaits.</p>
+    <h1>{{ .herotitle }}</h1>
+    {{- with .herotagline }}
+    <p class="hero-tagline">{{ . }}</p>
+    {{- end }}
   </div>
 </section>
 
 <section class="home-sections">
   <div class="home-featured">
-    <h2 class="home-section-title">Song of Heroic Lands</h2>
-    <h2 class="home-section-title home-section-title--settings">Settings</h2>
+    {{- range .headings }}
+    <h2 class="home-section-title{{ with .class }} home-section-title--{{ . }}{{ end }}">{{ .title }}</h2>
+    {{- end }}
+    {{- range .cards }}
 
-    <div class="home-card home-card--kb">
-      <a href="https://kb.heroiclands.org/">
-        <img src="https://cdn.heroiclands.org/images/banners/rules.webp" alt="Knowledgebase" class="card-image">
+    <div class="home-card{{ with .key }} home-card--{{ . }}{{ end }}">
+      {{- $url := .url }}{{ $title := .title }}{{ $alt := .alt | default .title }}
+      {{- with .image }}
+      <a href="{{ $url }}">
+        <img src="{{ partial "cdn-url.html" (dict "site" $.Site "path" .) }}" alt="{{ $alt }}" class="card-image">
       </a>
-      <h2><a href="https://kb.heroiclands.org/">Knowledgebase</a></h2>
-      <p>Master the rules of Song of Heroic Lands — the definitive reference for the system's mechanics, character creation, combat, and mysteries, all in one searchable place.</p>
-      <a href="https://kb.heroiclands.org/" class="card-button">More Info →</a>
+      {{- end }}
+      <h2><a href="{{ $url }}">{{ $title }}</a></h2>
+      <p>{{ .text }}</p>
+      <a href="{{ $url }}" class="card-button">More Info →</a>
     </div>
-
-    <div class="home-card home-card--api">
-      <a href="https://api.heroiclands.org/">
-        <img src="https://cdn.heroiclands.org/images/banners/dev-docs.webp" alt="API Documentation" class="card-image">
-      </a>
-      <h2><a href="https://api.heroiclands.org/">API Documentation</a></h2>
-      <p>Build on the system with confidence — technical documentation for the Song of Heroic Lands data model, Foundry VTT integration, and developer tooling.</p>
-      <a href="https://api.heroiclands.org/" class="card-button">More Info →</a>
-    </div>
-
-    <div class="home-card home-card--thalorna">
-      <a href="/thalorna/world/thalorna/">
-        <img src="https://cdn.heroiclands.org/images/banners/tapestry-of-dreams.webp" alt="The World of Thalorna" class="card-image">
-      </a>
-      <h2><a href="/thalorna/world/thalorna/">Thalorna</a></h2>
-      <p>Explore a growing trove of lore — NPCs, monsters, cultures, and adventures — crafted to enrich your settings and bring depth to every campaign.</p>
-      <a href="/thalorna/world/thalorna/" class="card-button">More Info →</a>
-    </div>
+    {{- end }}
   </div>
 </section>
+{{- end }}
 {{ end }}

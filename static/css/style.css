@@ -1855,7 +1855,7 @@ a.tag:hover {
 /* ---- Glyphs ----
 
    Small hieroglyphic clusters (Kemetían deity names, etc.) fetched
-   from https://cdn.heroiclands.org/icons/<slug>.svg via the glyph
+   from icons/<slug>.svg on the site's asset host via the glyph
    shortcode. Smaller and lighter than cartouches — these represent
    words, not royal seals, so they live inline with text or inside a
    compact stone tablet for catalog use. The .glyph family shares

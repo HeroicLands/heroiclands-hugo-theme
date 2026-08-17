@@ -1,7 +1,9 @@
 <header class="site-header">
   <div class="header-inner">
-    <a href="/" class="site-title">
-      <img src="https://cdn.heroiclands.org/images/brand/sohl-icon-white.webp" alt="Heroic Lands" class="site-logo">
+    <a href="{{ .Site.Home.RelPermalink }}" class="site-title">
+      {{- with .Site.Params.brand }}{{ with .logo }}
+      <img src="{{ partial "cdn-url.html" (dict "site" $.Site "path" .) }}" alt="Heroic Lands" class="site-logo">
+      {{- end }}{{ end }}
       <span class="title-main">Heroic Lands</span>
     </a>
     <nav class="site-nav">
