@@ -2,7 +2,7 @@
   Character info sidebar — profile-card style.
 
   Layout:
-    1. Portrait                (https://cdn.heroiclands.org/images/{shortcode}-portrait.webp)
+    1. Portrait                (https://cdn.heroiclands.org/images/being/{shortcode}-portrait.webp)
     2. "Character Profile"     header
     3. Profile header dl       (name / corpus / gender / born / occupation /
                                 class / realm / affiliations)
@@ -36,9 +36,13 @@
          there. A shortcode never changes, so a rename cannot reach the art.
 
          The `-portrait` suffix says which image this is: a page also carries a
-         `-headshot` and a `-token`, so the role belongs in the filename. */ -}}
+         `-headshot` and a `-token`, so the role belongs in the filename.
+
+         The `being/` directory carries the scope the shortcode cannot. A
+         shortcode is unique within a type, not globally — `boar` is both a
+         creature and a totem — so the type owns the directory. */ -}}
   {{- with .Params.shortcode }}
-  {{- $imgURL := printf "https://cdn.heroiclands.org/images/%s-portrait.webp" . }}
+  {{- $imgURL := printf "https://cdn.heroiclands.org/images/being/%s-portrait.webp" . }}
   <a class="info-portrait-link"
      href="{{ $imgURL }}"
      target="_blank"
