@@ -1,14 +1,28 @@
 {{- /*
-  Renders a page collection as the theme's `page-list` rows, each showing
-  "Name (shortcode)" with the page description beneath. The shortcode and
-  description are each shown only when present (attributes have no description,
-  guide/dev pages have no shortcode). Call with a page collection as context:
-  {{ partial "catalog-rows.html" .Pages }}
+  Renders a page collection as `page-list` rows: a linked title, optionally
+  followed by the page's shortcode, with the description beneath. The
+  description is shown only when present.
+
+  The shortcode suffix — "Name (shortcode)" — is a content-catalog affordance:
+  it lets a reader map a page to the identifier the system uses for that item.
+  That is what a reference catalog wants and what a narrative site does not, so
+  it is opt-in per consumer:
+
+    [params.list]
+      shortcodes = true
+
+  Unset, rows render as plain titles, which is what every taxonomy and tag
+  listing on a narrative site should show — a reader browsing by tag has no use
+  for `dagulfvthr` after a character's name.
+
+  Call with a page collection as context:
+    {{ partial "catalog-rows.html" .Pages }}
 */ -}}
+{{- $showShortcodes := default false site.Params.list.shortcodes -}}
 <ul class="page-list">
   {{- range . }}
   <li class="page-list-item">
-    <a class="page-list-title" href="{{ .RelPermalink }}">{{ .Title }}{{ with .Params.shortcode }} ({{ . }}){{ end }}</a>
+    <a class="page-list-title" href="{{ .RelPermalink }}">{{ .Title }}{{ if $showShortcodes }}{{ with .Params.shortcode }} ({{ . }}){{ end }}{{ end }}</a>
     {{- with .Description }}
     <span class="page-list-desc">{{ . }}</span>
     {{- end }}

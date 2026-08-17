@@ -104,6 +104,13 @@ baseURL = "https://example.org/"        # or "https://example.org/sohl/"
       image = "images/banners/rules.webp"
       text  = "…"
 
+  # Listing rows (partials/catalog-rows.html). A reference catalog shows
+  # "Name (shortcode)" so a reader can map a page to the identifier the
+  # system uses for it; a narrative site leaves this unset and gets plain
+  # titles, which is what a tag listing should show.
+  [params.list]
+    shortcodes = true
+
   # The "page not found" page (layouts/404.html). Hugo renders it to
   # public/404.html, which a static host serves — with a real HTTP 404 — for
   # any unpublished path. Omit it and the page still renders, with generic
