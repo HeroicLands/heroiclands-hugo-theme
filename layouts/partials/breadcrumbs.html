@@ -12,11 +12,12 @@
       since the page itself *is* the section.
     - Package-driven leaf content (type == "doc" OR any type that is
       package-routed by the exporter):
-        Middle crumb composed from .Params.package and either
+        Middle crumb labelled from .Params.package and either
         .Params.category (for doc) or the type itself (for everything
-        else). URL = /{package}/{middle}/. Label = $packageLabels[package]
-        + " " + titleCase(middle). Keep $packageLabels in sync with the
-        packages actually used in the vault.
+        else): $packageLabels[package] + " " + titleCase(middle). Keep
+        $packageLabels in sync with the packages actually used. The link is
+        the page's own section (.CurrentSection), so it is correct whatever
+        path the site serves that package under.
     - Compound types under /hm3/ ({system}-{kind}, e.g. hm3-user-guide)
       get a curated label and link from $compoundLabels.
     - Pages with no type declared (e.g., blog/project landings, auto-
@@ -66,9 +67,24 @@
         {{- if and (ne $pkg "") (ne $middle "") -}}
           {{- $pkgLabel := index $packageLabels $pkg | default (title $pkg) -}}
           {{- $middleLabel := replace $middle "-" " " | title -}}
+          {{- /*
+            The crumb points at the section this page sits in, and Hugo already
+            knows where that is. Composing the address instead — as
+            /{package}/{section}/ — assumes the package occupies a path segment
+            of the site serving it, which is true only of a site that publishes
+            several: on a knowledgebase serving one package at its root the
+            crumb pointed at a page that does not exist, and on a package that
+            publishes its own subtree it doubled the prefix. The label is still
+            composed, since it names the package for a reader who may be
+            arriving from another one.
+          */ -}}
+          {{- $sectionURL := printf "%s/%s/" $pkg $middle | relURL -}}
+          {{- with .CurrentSection -}}
+            {{- if .RelPermalink -}}{{- $sectionURL = .RelPermalink -}}{{- end -}}
+          {{- end -}}
           {{- $section = dict
               "label" (printf "%s %s" $pkgLabel $middleLabel)
-              "url"   (printf "%s/%s/" $pkg $middle | relURL) -}}
+              "url"   $sectionURL -}}
         {{- end -}}
       {{- end -}}
       {{- if $section -}}
