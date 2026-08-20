@@ -10,10 +10,15 @@
 */ -}}
 {{- $type := .Params.type | default "" -}}
 {{- $gearTypes := slice "weapongear" "armorgear" "miscgear" "containergear" "projectilegear" "concoctiongear" -}}
-{{- if eq $type "character" -}}
-  {{- partial "sidebars/character.html" . -}}
-{{- else if eq $type "creature" -}}
-  {{- partial "sidebars/creature.html" . -}}
+{{- /* `character` and `creature` were merged into `being` upstream, and their
+       two partials into one. The retired spellings still route here because
+       consumers migrate their content on their own schedule; drop them once
+       every consuming site is on `being`. Must stay in step with
+       $beingTypes in layouts/_default/single.html, which decides whether the
+       page reserves a column for what this partial emits. */ -}}
+{{- $beingTypes := slice "being" "character" "creature" -}}
+{{- if in $beingTypes $type -}}
+  {{- partial "sidebars/being.html" . -}}
 {{- else if in $gearTypes $type -}}
   {{- partial "sidebars/gear.html" . -}}
 {{- end -}}
