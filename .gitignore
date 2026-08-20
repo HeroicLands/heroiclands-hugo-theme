@@ -4,3 +4,6 @@
 
 # Node tooling (label-registry guard only)
 node_modules/
+
+# Local agent guidance (per-developer, not shared)
+CLAUDE.md
