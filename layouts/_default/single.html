@@ -5,19 +5,25 @@
 {{- $type := .Params.type | default "" -}}
 {{- /* Narrative content now uses type=doc with a `category` subtype
        label (e.g. continent/region/polity/faith). Structured content
-       (character/creature/gear) keeps its own type. $subtype collapses
+       (being/gear) keeps its own type. $subtype collapses
        both shapes into a single value so the dispatch below doesn't
        need to know which shape a given page uses. */ -}}
 {{- $subtype := cond (eq $type "doc") (.Params.category | default "") $type -}}
 {{- $gearTypes := slice "weapongear" "armorgear" "miscgear" "containergear" "projectilegear" "concoctiongear" -}}
-{{- $hasSidebar := or (eq $type "character") (eq $type "creature") (in $gearTypes $type) -}}
+{{- /* `character` and `creature` were merged into `being` upstream. They are
+       still honoured because consumers migrate their own content on their own
+       schedule and the theme cannot know which have; drop them once every
+       consuming site is on `being`. Kept in one list so this file and
+       info-sidebar.html cannot drift apart on what counts as a being. */ -}}
+{{- $beingTypes := slice "being" "character" "creature" -}}
+{{- $hasSidebar := or (in $beingTypes $type) (in $gearTypes $type) -}}
 
 {{- /* The TOC partial only emits markup when the page has more than
        3 H2 headings. To avoid laying the page out as a two-column
        grid for nothing, detect the same condition here so we can
        apply the `.single-with-toc` class conditionally. We don't
        show the TOC on pages that already have a right-rail info
-       sidebar (character/creature profiles) — the sidebar wins. */ -}}
+       sidebar (being profiles) — the sidebar wins. */ -}}
 {{- $h2Count := len (findRE `(?m)^##\s+\S` (.RawContent | default "")) -}}
 {{- $hasToc := and (not $hasSidebar) (gt $h2Count 3) -}}
 

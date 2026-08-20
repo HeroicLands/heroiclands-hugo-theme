@@ -1,9 +1,9 @@
 {{- /*
-  Character info sidebar — profile-card style.
+  Being info sidebar — profile-card style.
 
   Layout:
     1. Portrait                (images/being/{shortcode}-portrait.webp on the site's asset host)
-    2. "Character Profile"     header
+    2. "Profile"               header
     3. Profile header dl       (name / corpus / gender / born / occupation /
                                 class / realm / region / affiliations)
     4. Appearance              one-line composed sentence built from
@@ -12,19 +12,48 @@
     6. Skills                  one paragraph per category, small-caps inline list
 
   Display-name and category mappings live in data/sohl.yaml.
-  Every section is guarded so missing data silently disappears.
+
+  This was two partials, `character.html` and `creature.html`, chosen by the
+  page's content type. That type was retired — both spellings always compiled
+  to one `being` — so the choice had to go somewhere, and the honest answer is
+  nowhere: **every section is driven by the data it renders.** A being with no
+  `social` block simply has no Occupation row, which is what the creature
+  partial did by having no such row at all.
+
+  Two differences between the old pair had to be settled rather than merged:
+
+  - The heading was "Character Profile" or "Creature Profile". Neither is
+    derivable now, and guessing from the optional blocks would mislabel a
+    creature that carries `traits.weight` — which the schema allows and the
+    retirement rationale explicitly called sensible. So: "Profile". The page
+    title and breadcrumb already name the subject.
+  - The attribute grid differed: the character version rendered all fourteen in
+    canonical order with an em-dash for anything missing; the creature version
+    rendered only the ones present, because "creature stat blocks are typically
+    sparser". The sparse rule is kept, and it costs nothing — every published
+    `character` note carries a complete set, so "only those present" and "all
+    fourteen" render the same markup for all of them. The em-dash was only ever
+    distinguishable on data that does not exist, and where it would appear it
+    asserts "this being has no Strength" when the truth is that nobody wrote
+    one down.
+
+  Reads are guarded against an absent `sohl` / `traits` / `social` block
+  throughout: the character partial could assume them, and this one cannot.
 */ -}}
 {{- $sohl       := hugo.Data.sohl -}}
 {{- $attrNames  := $sohl.attributes -}}
 {{- $attrCols   := $sohl.attribute_columns -}}
 {{- $skillNames := $sohl.skills -}}
 {{- $categories := $sohl.skill_categories -}}
-{{- $attrs      := .Params.sohl.attributes -}}
-{{- $charSkills := .Params.sohl.skills -}}
-{{- $traits     := .Params.traits -}}
-{{- $appearance := "" -}}
-{{- $birthsign  := "" -}}
-{{- with .Params.sohl }}{{ $birthsign = .birthsign }}{{ end -}}
+{{- /* Defaulted to empty maps, not read straight through: a being with no
+       `sohl` or `traits` block is ordinary — most creatures have neither —
+       and `index` on a nil map is a build error, not an empty section. */ -}}
+{{- $attrs      := dict -}}{{- with .Params.sohl }}{{- with .attributes }}{{ $attrs = . }}{{ end }}{{ end -}}
+{{- $skills     := dict -}}{{- with .Params.sohl }}{{- with .skills     }}{{ $skills = . }}{{ end }}{{ end -}}
+{{- $traits     := dict -}}{{- with .Params.traits }}{{ $traits = . }}{{ end -}}
+{{- $social     := dict -}}{{- with .Params.social }}{{ $social = . }}{{ end -}}
+{{- $corpus     := "" -}}{{- with .Params.sohl }}{{- with .corpus }}{{ $corpus = . }}{{ end }}{{ end -}}
+{{- $birthsign  := "" -}}{{- with .Params.sohl }}{{ $birthsign = .birthsign }}{{ end -}}
 
 <aside class="info-sidebar">
 
@@ -56,12 +85,12 @@
   {{- end }}
 
   <header class="info-sidebar-title">
-    <h2>Character Profile</h2>
+    <h2>Profile</h2>
   </header>
 
   {{- /* ---- Profile header (name, corpus, gender, born, occupation, ...) ---- */ -}}
   {{- $birthday := "" -}}{{- with $traits.birthday }}{{ $birthday = . }}{{ end -}}
-  {{- /* A character's religion is not a property of the character. It is an
+  {{- /* A being's religion is not a property of the being. It is an
          affiliation they hold — which carries their standing within the body —
          so it is read off `sohl.items`, alongside their skills and gear,
          rather than from a `faith` field that duplicated it. Resolve each to
@@ -83,7 +112,7 @@
     {{- end -}}
   {{- end }}{{- end -}}
 
-  {{- /* Where the character is from. Both values are shortcodes — identity,
+  {{- /* Where the being is from. Both values are shortcodes — identity,
          which survives a retitle — so each joins on `Params.shortcode` the way
          the geographic infoboxes already do, and links.
 
@@ -121,7 +150,7 @@
     <dd>{{ . }}</dd>
     {{- end }}{{- end }}
 
-    {{- with .Params.sohl.corpus }}
+    {{- with $corpus }}
     <dt>Corpus</dt>
     <dd>{{ if .url }}<a href="{{ .url }}">{{ .name }}</a>{{ else }}{{ .name }}{{ end }}</dd>
     {{- end }}
@@ -136,12 +165,12 @@
     <dd>{{ $birthday }}{{ if and $birthday $birthsign }} {{ end }}{{ with $birthsign }}<span class="info-sub">(Sunsign: {{ . }})</span>{{ end }}</dd>
     {{- end }}
 
-    {{- with .Params.social.occupation }}
+    {{- with $social.occupation }}
     <dt>Occupation</dt>
     <dd>{{ . | humanize | title }}</dd>
     {{- end }}
 
-    {{- with .Params.social.class }}
+    {{- with $social.class }}
     <dt>Class</dt>
     <dd>{{ . | humanize | title }}</dd>
     {{- end }}
@@ -200,12 +229,15 @@
     <h3 class="info-section-title">Attributes</h3>
     <div class="info-attrs-grid">
       {{- range $code := $attrOrder }}
-      {{- $score := "" }}{{ with $attrs }}{{ $score = index . $code }}{{ end }}
-      {{- $label := index $attrNames $code | default (upper $code) }}
-      <div class="info-attr" title="{{ $label }}">
-        <span class="attr-label">{{ upper $code }}</span>
-        <span class="attr-value">{{ with $score }}{{ . }}{{ else }}<span class="info-missing">&mdash;</span>{{ end }}</span>
-      </div>
+        {{- $score := "" -}}
+        {{- with $attrs }}{{ $score = index . $code }}{{ end -}}
+        {{- with $score }}
+        {{- $label := index $attrNames $code | default (upper $code) }}
+        <div class="info-attr" title="{{ $label }}">
+          <span class="attr-label">{{ upper $code }}</span>
+          <span class="attr-value">{{ . }}</span>
+        </div>
+        {{- end -}}
       {{- end }}
     </div>
   </section>
@@ -213,7 +245,7 @@
 
   {{- /* ---- Skills (grouped by category) ---- */ -}}
   {{- $hasAnySkill := false -}}
-  {{- with $charSkills }}{{ $hasAnySkill = gt (len .) 0 }}{{ end -}}
+  {{- with $skills }}{{ $hasAnySkill = gt (len .) 0 }}{{ end -}}
   {{- if $hasAnySkill }}
   <section class="info-section">
     <h3 class="info-section-title">Skills</h3>
@@ -228,7 +260,7 @@
       {{- $entries := slice -}}
       {{- range $code := .skills -}}
         {{- $score := "" -}}
-        {{- with $charSkills }}{{ $score = index . $code }}{{ end -}}
+        {{- with $skills }}{{ $score = index . $code }}{{ end -}}
         {{- with $score -}}
           {{- $name := index $skillNames $code | default $code -}}
           {{- $entries = $entries | append (dict "name" $name "score" .) -}}
@@ -247,9 +279,9 @@
       {{- end }}
     {{- end }}
 
-    {{- /* Catch any skills the character has that aren't in any category. */ -}}
+    {{- /* Catch any skills the being has that aren't in any category. */ -}}
     {{- $other := slice -}}
-    {{- range $code, $score := $charSkills -}}
+    {{- range $code, $score := $skills -}}
       {{- if not (index $categorized $code) -}}
         {{- $name := index $skillNames $code | default $code -}}
         {{- $other = $other | append (dict "name" $name "score" $score) -}}
