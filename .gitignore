@@ -1,3 +1,9 @@
 .DS_Store
 /resources/_gen/
 /public/
+
+# Node tooling (label-registry guard only)
+node_modules/
+
+# Local agent guidance (per-developer, not shared)
+CLAUDE.md

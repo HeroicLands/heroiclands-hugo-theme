@@ -1,0 +1,30 @@
+{
+    "name": "heroiclands-hugo-theme",
+    "private": true,
+    "version": "0.0.0",
+    "description": "Shared Hugo theme for the Heroic Lands projects",
+    "type": "module",
+    "license": "GPL-3.0-or-later",
+    "author": {
+        "name": "Tom Rodriguez",
+        "email": "toasty@heroiclands.org"
+    },
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/HeroicLands/heroiclands-hugo-theme.git"
+    },
+    "bugs": {
+        "url": "https://github.com/HeroicLands/heroiclands-hugo-theme/issues"
+    },
+    "engines": {
+        "node": ">=24.0.0"
+    },
+    "scripts": {
+        "prepare": "git config core.hooksPath .githooks || true",
+        "lint": "npm run lint:labels",
+        "lint:labels": "node utils/check-labels.mjs"
+    },
+    "devDependencies": {
+        "yaml": "^2.9.0"
+    }
+}

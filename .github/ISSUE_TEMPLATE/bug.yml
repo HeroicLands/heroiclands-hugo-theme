@@ -1,0 +1,41 @@
+name: Bug
+description: Existing behavior is broken — an error, a page that renders wrong, or a regression.
+type: Bug
+body:
+    - type: textarea
+      id: description
+      attributes:
+          label: Description
+          description: Describe the problem fully so it can be reproduced. Do not propose a fix here — put fix ideas in a comment. Exploitable weaknesses must be reported privately, never as a public issue.
+          value: |
+              ## Summary
+              One sentence: what's wrong.
+
+              ## Steps to reproduce
+              1. …
+              2. …
+
+              ## Expected vs. actual
+              Expected: …
+              Actual: …
+
+              ## Which consumers are affected
+              The theme renders three sites. Say which you saw it on, and whether
+              you checked the others — a fault in one consumer and not the rest
+              usually means the bug is in that consumer, not here.
+
+              - [ ] `/sohl` (Song-of-Heroic-Lands-FoundryVTT)
+              - [ ] `/thalorna` (sohl-thalorna)
+              - [ ] heroiclands.org (heroiclands-site)
+
+              ## Acceptance criteria
+              - [ ] Observable condition 1
+              - [ ] Observable condition 2
+
+              ## Environment
+              Hugo version · theme commit · browser/OS if relevant
+
+              ## Notes
+              Build output, console errors, suspected partial.
+      validations:
+          required: true

@@ -1,0 +1,27 @@
+name: Lint
+
+# The label registry has two faces that must agree — .github/labels.yml and the §3
+# table in .github/ISSUE_REPORTING.md. Every other repository in the project runs
+# check-labels from its build; this one has no build (it is a Hugo theme, rendered
+# by its consumers), so the guard runs here instead.
+
+on:
+    pull_request:
+    push:
+        branches: [main]
+
+permissions:
+    contents: read
+
+jobs:
+    lint:
+        name: Label registry
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@v4
+            - uses: actions/setup-node@v4
+              with:
+                  node-version: 24
+                  cache: npm
+            - run: npm ci
+            - run: npm run lint
