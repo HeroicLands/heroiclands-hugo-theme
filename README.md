@@ -49,16 +49,41 @@ signal it should move out.
 
 ## Use
 
-Add as a submodule and set the theme:
+Install it, and point Hugo at where npm put it:
 
 ```bash
-git submodule add https://github.com/HeroicLands/heroiclands-hugo-theme.git themes/heroiclands-hugo-theme
+npm install --save-dev @heroiclands/hugo-theme
 ```
 
 ```toml
 # hugo.toml
-theme = "heroiclands-hugo-theme"
+themesDir = "node_modules/@heroiclands"
+theme = "hugo-theme"
 ```
+
+Hugo looks for `<themesDir>/<theme>`, so the scope becomes the themes directory
+and the package name becomes the theme name. Nothing is copied and no module
+mounts are needed.
+
+**`themesDir` is relative to the Hugo root**, which is not always the repository
+root. A site rooted in a subdirectory — `hugo --source kb` — reaches back out to
+the lockfile's `node_modules`:
+
+```toml
+themesDir = "../node_modules/@heroiclands"
+```
+
+The theme ships `layouts`, `static`, `data` and `theme.toml`, and has **no
+runtime dependencies**.
+
+### Why not a submodule
+
+It was one, in all three consuming repositories, and the pointers went stale
+without anything saying so: HeroicLands/heroiclands-hugo-theme#18 merged the two
+profile sidebars into one, and 482 published pages rendered without a sidebar on
+green builds until someone noticed (#19). A submodule SHA is invisible to every
+tool a project already runs; a version range and a lockfile are not, and
+Dependabot raises the bump on its own.
 
 ### What a consumer must supply
 
