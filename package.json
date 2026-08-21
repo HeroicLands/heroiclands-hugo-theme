@@ -1,6 +1,6 @@
 {
   "name": "@heroiclands/hugo-theme",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "Shared Hugo theme for the Heroic Lands projects",
   "type": "module",
   "license": "GPL-3.0-or-later",
