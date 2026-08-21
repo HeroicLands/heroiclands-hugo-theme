@@ -1,11 +1,10 @@
 {{- /*
   Related partial.
 
-  Renders a compact "Related" block at the bottom of a single page
-  using the backlinks and mentions lists injected into frontmatter
-  by the Hugo exporter (scripts/export-hugo.ts).
+  Renders a compact "Related" block at the bottom of a single page from the
+  page's `related` front matter, if it carries any.
 
-  Structure in frontmatter:
+  Structure in front matter:
     related:
       backlinks: [{ title, url, type }, ...]   # pages that link here
       mentions:  [{ title, url, type }, ...]   # pages this page links to
@@ -17,17 +16,23 @@
     - Emit one line per type: "Label: link • link • link".
     - The whole block is wrapped in a bordered, tinted card so it
       visually sets off the end of the article.
+
+  Silent disappear: a page with no `related`, or whose two lists are both
+  empty, emits nothing at all rather than an empty heading. The rows are
+  computed first and the <section> is rendered only when there is something
+  to put in it.
+
+  `return` cannot be used to bail out early here. It sets the partial's
+  return value; it does not discard template text the partial has already
+  emitted, so a guard written that way still prints the empty shell. Hence
+  the emptiness test wraps the markup instead of preceding it.
 */ -}}
 
-{{- $rel := .Params.related -}}
-{{- if not $rel -}}{{- return -}}{{- end -}}
-
+{{- /* `default dict` keeps the lookups below safe on a page with no
+       `related` at all, so the whole computation stays flat. */ -}}
+{{- $rel := .Params.related | default dict -}}
 {{- $backlinks := or $rel.backlinks slice -}}
 {{- $mentions  := or $rel.mentions  slice -}}
-
-{{- if and (eq (len $backlinks) 0) (eq (len $mentions) 0) -}}
-  {{- return -}}
-{{- end -}}
 
 {{- /* Merge both directions, deduped by URL. `union` can't hash
        slices of maps, so we walk the two lists in order and dedupe
@@ -74,7 +79,7 @@
 -}}
 
 {{- /* Group refs by type, preserving alphabetical order within a
-       group (input is already sorted by the exporter). */ -}}
+       group (the input lists arrive already sorted). */ -}}
 {{- $groups := dict -}}
 {{- range $merged -}}
   {{- $t := .type | default "page" -}}
@@ -89,8 +94,14 @@
   {{- $label := index $labels $type | default (humanize $type) -}}
   {{- $rows = $rows | append (dict "label" $label "type" $type "refs" $refs) -}}
 {{- end -}}
-{{- $rows = sort $rows "label" "asc" -}}
+{{- if $rows -}}
+  {{- $rows = sort $rows "label" "asc" -}}
+{{- end -}}
 
+{{- /* Deliberately not indented under the `if`: keeping the markup at
+       column 0 leaves the emitted HTML byte-identical to what pages with
+       `related` rendered before the guard was added. */ -}}
+{{- if $rows -}}
 <section class="related" aria-labelledby="related-heading">
   <h2 id="related-heading" class="related-heading">Related</h2>
   <dl class="related-rows">
@@ -107,3 +118,4 @@
     {{- end }}
   </dl>
 </section>
+{{ end -}}
