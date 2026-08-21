@@ -22,6 +22,12 @@
   --gold:          #c9a84c;
   --gold-dim:      #a08338;
 
+  /* A link whose target no package publishes. Contrast-checked against the
+     three surfaces it can sit on: 7.8:1 on --bg, 7.2:1 on --bg-card, 6.3:1 on
+     --surface. A consuming site may override it, but must re-check: the light
+     red the Foundry system uses reaches only ~2.5:1 here. */
+  --unresolved-link: #ff8a80;
+
   --font-display:  'Cinzel', 'Georgia', serif;
   --font-body:     'Lora', 'Georgia', serif;
   --font-mono:     'JetBrains Mono', monospace;
@@ -869,6 +875,31 @@ a.tag:hover {
 .exturl-copy.copied .exturl-check {
   display: block;
   color: #4caf50;
+}
+
+/* ---- Unresolved link ----
+
+   A wikilink whose target no package publishes. The content builds keep the
+   author's text — dropping it would rewrite the sentence — and wrap it in this
+   class so a reader can tell something was meant to be a link and an author can
+   find it. Without a rule here the span arrives styled as body text, so the
+   marking exists in the HTML and communicates nothing.
+
+   Not signalled by hue alone: the dotted underline carries it for a reader who
+   cannot separate the colour from surrounding text, and `cursor: help` hints at
+   the title, which names the address that failed to resolve.
+
+   Single-mode dark, deliberately. The Foundry system's copy of this rule uses
+   light-dark(), which is right there because Foundry drives its themes through
+   color-scheme; this theme sets none, so light-dark() would resolve to the light
+   value and render the marker at about 2.5:1 — a marker nobody can see. */
+
+.sohl-unresolved-link {
+  font-weight: 700;
+  color: var(--unresolved-link);
+  text-decoration: underline dotted currentcolor;
+  text-underline-offset: 0.15em;
+  cursor: help;
 }
 
 /* ---- Banners ---- */
