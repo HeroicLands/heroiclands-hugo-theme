@@ -1,9 +1,19 @@
 {{- /*
-  Home layout — the featured grid of entry points into whatever this site
-  publishes.
+  Home layout. Two shapes share it, chosen by what the home page carries.
+
+  **A package landing** — the entry point to one published package, at its own
+  prefix (/sohl/, /thalorna/, /kethira/, …). Selected when the home page
+  declares `type: homepage` or carries a `landing` map in its front matter, and
+  rendered by `partials/landing.html`, which documents the whole front-matter
+  contract. Six packages publish one of these (issue #33), so the shape lives
+  here rather than being hand-built six times.
+
+  **The featured grid** — a site whose home page is a set of entry points into
+  everything it publishes. This is the older shape and stays the default, so a
+  consumer that has not adopted the landing keeps rendering exactly as before.
 
   The theme owns the arrangement; the consuming site owns every address and
-  every word, under `params.home`:
+  every word. The grid reads them from `params.home`:
 
     heroimage    Banner behind the hero band. Resolved through cdn-url.html,
                  so it may be absolute or relative to `params.cdnBaseURL`.
@@ -22,6 +32,9 @@
   modifier class.
 */ -}}
 {{ define "main" }}
+{{- if or (eq (.Params.type | default "") "homepage") .Params.landing -}}
+{{- partial "landing.html" . -}}
+{{- else -}}
 {{- with .Site.Params.home }}
 <section class="hero hero-with-image"{{ with .heroimage }} style="background-image: url('{{ partial "cdn-url.html" (dict "site" $.Site "path" .) }}');"{{ end }}>
   <div class="hero-inner">
@@ -53,5 +66,6 @@
     {{- end }}
   </div>
 </section>
+{{- end }}
 {{- end }}
 {{ end }}
