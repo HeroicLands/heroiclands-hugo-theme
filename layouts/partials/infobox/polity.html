@@ -10,12 +10,12 @@
   Shows the key polity frontmatter fields. Every section is guarded
   so missing data silently disappears.
 
-  Reference fields (languages, pantheons, capital) hold the target
-  page's `shortcode` — its stable identity, which a rename never
-  changes — and are resolved to real pages and rendered as links when a
-  match exists. An unresolvable reference falls back to a humanized
-  label, which means an authoring error shows up as an odd-looking row
-  rather than a missing one.
+  Reference fields (peoples, languages, pantheons, capital, and the
+  parent chain) hold the target page's `shortcode` — its stable
+  identity, which a rename never changes — and are resolved to real
+  pages and rendered as links when a match exists. An unresolvable
+  reference falls back to a humanized label, which means an authoring
+  error shows up as an odd-looking row rather than a missing one.
 */ -}}
 
 {{- $ctx := . -}}
@@ -113,10 +113,15 @@
     <dt>Peoples</dt>
     <dd>
       {{- $parts := slice -}}
-      {{- range $peoples -}}
-        {{- $parts = $parts | append (humanize . | title) -}}
+      {{- range $code := $peoples -}}
+        {{- $pg := first 1 (where $ctx.Site.RegularPages "Params.shortcode" $code) -}}
+        {{- with index $pg 0 -}}
+          {{- $parts = $parts | append (printf `<a href="%s">%s</a>` .Permalink .LinkTitle) -}}
+        {{- else -}}
+          {{- $parts = $parts | append (humanize $code | title) -}}
+        {{- end -}}
       {{- end -}}
-      {{ delimit $parts ", " }}
+      {{ delimit $parts ", " | safeHTML }}
     </dd>
     {{- end }}
 
