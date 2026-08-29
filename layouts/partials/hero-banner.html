@@ -10,31 +10,93 @@
 
   Banner image resolution order:
     1. .Params.banner              — author-specified override (frontmatter).
-                                     If it's a full URL, use as-is; otherwise
-                                     treat as a fragment under images/.
+                                     `none` (or `false`) declines a hero image
+                                     entirely — see "Declining" below. A full
+                                     URL is used as-is; anything else is
+                                     treated as a fragment under images/.
     2. images/banners/{subtype}.webp — subtype-specific default, where
                                      subtype = category for type=doc pages,
                                      otherwise type
-    3. images/banners/default.webp — fallback when the page has no type
-*/ -}}
-{{- $banner := "" -}}
-{{- with .Params.banner -}}
-  {{- $banner = printf "images/%s" (strings.TrimPrefix "/" .) -}}
-  {{- if or (hasPrefix . "http://") (hasPrefix . "https://") -}}
-    {{- $banner = . -}}
-  {{- end -}}
-{{- else -}}
-  {{- /* For narrative content (type=doc) the meaningful kind of page
-         lives in `category` — continent, region, polity, faith, lore,
-         etc. — so prefer that when picking a default banner. */ -}}
-  {{- $type := .Params.type | default "" -}}
-  {{- $subtype := cond (eq $type "doc") (.Params.category | default "") $type -}}
-  {{- if not $subtype }}{{ $subtype = "default" }}{{ end -}}
-  {{- $banner = printf "images/banners/%s.webp" $subtype -}}
-{{- end -}}
-{{- $bannerURL := partial "cdn-url.html" (dict "site" .Site "path" $banner) -}}
+    3. images/banners/default.webp — used when the page has no type, *and*
+                                     whenever the name picked by 1 or 2 is not
+                                     in the declared inventory (see below).
 
-<section class="hero hero-with-image" style="background-image: url('{{ $bannerURL }}');">
+  Existence, and why step 3 is a declaration rather than a test.
+  The image is served from the consumer's asset host, and Hugo cannot ask a
+  remote host whether a URL exists — so a name that was never drawn used to be
+  emitted unchecked and 404 in silence, the band rendering with its title,
+  palette and gradient intact behind a dead URL (issue #36). `data/banners.yaml`
+  is the declaration that stands in for the test it cannot make: a resolved name
+  absent from `available` falls back to `fallback` and warns once. That file
+  documents how the list is kept honest (`npm run lint:banners` fetches every
+  name and fails on a non-200), and a consumer publishing its own artwork set
+  overrides the whole list by shipping its own `data/banners.yaml`.
+
+  The check applies only to a *relative* path resolving directly inside the
+  declared banner directory. An absolute URL, and a fragment pointing anywhere
+  else under images/, pass through untouched: the theme has no inventory for
+  either and must not second-guess an address it cannot know about.
+
+  Declining a hero image.
+  `banner: none` renders the band with no image at all — the title, the palette
+  and the .hero-with-image gradient, which is what gives the band its presence.
+  This is not the same as having no banner yet: a package may have a standing
+  editorial reason to publish no imagery, and the fan-material carve-outs do.
+  Falling back to a default for them would substitute artwork where the
+  considered answer was "none", so declining has to be sayable.
+*/ -}}
+
+{{- $banners := hugo.Data.banners | default dict -}}
+{{- $dir := $banners.dir | default "images/banners" -}}
+{{- $fallback := $banners.fallback | default "default.webp" -}}
+{{- $available := $banners.available | default slice -}}
+
+{{- /* `none`/`false` is a decision, not an absence, so it is read before the
+       resolution order rather than as a step in it. Formatted rather than
+       tested for truth, and deliberately not passed through `default`: both
+       `false` and an unset banner are falsy, and only formatting tells them
+       apart. */ -}}
+{{- $raw := printf "%v" .Params.banner -}}
+{{- $declined := or (eq (lower $raw) "none") (eq $raw "false") -}}
+
+{{- $banner := "" -}}
+{{- $absolute := false -}}
+{{- if not $declined -}}
+  {{- with .Params.banner -}}
+    {{- $banner = printf "images/%s" (strings.TrimPrefix "/" .) -}}
+    {{- if or (hasPrefix . "http://") (hasPrefix . "https://") (hasPrefix . "//") -}}
+      {{- $banner = . -}}
+      {{- $absolute = true -}}
+    {{- end -}}
+  {{- else -}}
+    {{- /* For narrative content (type=doc) the meaningful kind of page
+           lives in `category` — continent, region, polity, faith, lore,
+           etc. — so prefer that when picking a default banner. */ -}}
+    {{- $type := .Params.type | default "" -}}
+    {{- $subtype := cond (eq $type "doc") (.Params.category | default "") $type -}}
+    {{- if not $subtype }}{{ $subtype = "default" }}{{ end -}}
+    {{- $banner = printf "%s/%s.webp" $dir $subtype -}}
+  {{- end -}}
+
+  {{- /* The declared-existence check. Deduplicated by name, so a subtype with
+         no artwork is reported once per build rather than once per page. */ -}}
+  {{- if and (not $absolute) (eq (path.Dir $banner) $dir) -}}
+    {{- $name := strings.TrimSuffix (path.Ext $banner) (path.Base $banner) -}}
+    {{- if not (in $available $name) -}}
+      {{- warnidf (printf "hero-banner-missing-%s" $name)
+          "hero-banner: no banner named %q in the shared artwork set; falling back to %s/%s. Draw it and add %q to data/banners.yaml, or set `banner:` on the page (`banner: none` declines a hero image). First seen on %s."
+          $name $dir $fallback $name .RelPermalink -}}
+      {{- $banner = printf "%s/%s" $dir $fallback -}}
+    {{- end -}}
+  {{- end -}}
+{{- end -}}
+
+{{- $bannerURL := "" -}}
+{{- if $banner -}}
+  {{- $bannerURL = partial "cdn-url.html" (dict "site" .Site "path" $banner) -}}
+{{- end -}}
+
+<section class="hero hero-with-image"{{ with $bannerURL }} style="background-image: url('{{ . }}');"{{ end }}>
   <div class="hero-inner">
     <h1>{{ .Title }}</h1>
     {{- with .Params.description }}

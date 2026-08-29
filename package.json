@@ -36,8 +36,9 @@
   },
   "scripts": {
     "prepare": "git config core.hooksPath .githooks || true",
-    "lint": "npm run lint:labels",
-    "lint:labels": "node utils/check-labels.mjs"
+    "lint": "npm run lint:labels && npm run lint:banners",
+    "lint:labels": "node utils/check-labels.mjs",
+    "lint:banners": "node utils/check-banners.mjs"
   },
   "devDependencies": {
     "yaml": "^2.9.0"

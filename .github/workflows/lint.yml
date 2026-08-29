@@ -1,9 +1,16 @@
 name: Lint
 
-# The label registry has two faces that must agree — .github/labels.yml and the §3
-# table in .github/ISSUE_REPORTING.md. Every other repository in the project runs
-# check-labels from its build; this one has no build (it is a Hugo theme, rendered
-# by its consumers), so the guard runs here instead.
+# Two declarations this repository cannot check while rendering, because it never
+# renders: it is a Hugo theme, built by its consumers. Every other repository in
+# the project runs its guards from its build; these run here instead.
+#
+#   check-labels  — .github/labels.yml and the §3 table in
+#                   .github/ISSUE_REPORTING.md must name the same labels.
+#   check-banners — every banner data/banners.yaml declares must actually be
+#                   published. hero-banner.html trusts that list to decide what
+#                   exists, since Hugo cannot ask a remote asset host; nothing
+#                   but a fetch can keep it honest (issue #36). This step
+#                   therefore needs outbound network.
 
 on:
     pull_request:
@@ -15,7 +22,7 @@ permissions:
 
 jobs:
     lint:
-        name: Label registry
+        name: Declarations
         runs-on: ubuntu-latest
         steps:
             - uses: actions/checkout@v7
