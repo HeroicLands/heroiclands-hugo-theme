@@ -73,8 +73,23 @@ the lockfile's `node_modules`:
 themesDir = "../node_modules/@heroiclands"
 ```
 
-The theme ships `layouts`, `static`, `data` and `theme.toml`, and has **no
-runtime dependencies**.
+The theme ships `layouts`, `static`, `data`, `theme.toml` and `CHANGELOG.md`, and
+has **no runtime dependencies**.
+
+### Upgrading
+
+The theme is on `0.x`, where **a caret does not cross a minor**: `^0.2.0` means
+`>=0.2.0 <0.3.0`. So a theme release reaches a site in one of two ways, and only
+one of them is automatic.
+
+- **A patch** is already in range. Nothing in the manifest changes — but the
+  **lockfile must still move**, because `npm ci` installs what is locked.
+  Dependabot raises that pull request.
+- **A minor** is out of range, so Dependabot will not offer it at all. Widen the
+  pin by hand in the consuming repository's `package.json`, then update the lock.
+
+A site can therefore be several theme releases behind on entirely green builds.
+`CHANGELOG.md` in the installed package says which version it actually has.
 
 ### Why not a submodule
 

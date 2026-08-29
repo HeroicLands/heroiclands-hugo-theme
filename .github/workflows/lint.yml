@@ -11,6 +11,10 @@ name: Lint
 #                   exists, since Hugo cannot ask a remote asset host; nothing
 #                   but a fetch can keep it honest (issue #36). This step
 #                   therefore needs outbound network.
+#
+# It also carries the release gate: every pull request must declare its intended
+# bump as a changeset (#30). That check lives here rather than in a workflow of
+# its own because this is the workflow a pull request already waits on.
 
 on:
     pull_request:
@@ -32,3 +36,44 @@ jobs:
                   cache: npm
             - run: npm ci
             - run: npm run lint
+
+    # Every pull request declares the release it intends — a bump, or an empty
+    # changeset saying it needs none. This is the gate that keeps a version from
+    # being merged and then forgotten: the release pipeline versions from
+    # changesets, so a change that adds none ships nothing (#30).
+    #
+    # It reports on the version pull request too, which is the one pull request
+    # that legitimately carries no changeset — consuming them is precisely what
+    # it does. The check step is skipped there and the job still succeeds, rather
+    # than the job being skipped, because a skipped job reports a skipped check
+    # and a required context wants a passing one. Whether a branch pushed with
+    # GITHUB_TOKEN starts workflow runs is not a thing to bet the release train
+    # on either way.
+    changeset:
+        name: Changeset declared
+        if: github.event_name == 'pull_request'
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@v7
+              with:
+                  fetch-depth: 0
+            - uses: actions/setup-node@v7
+              with:
+                  node-version: 24
+                  cache: npm
+            - run: npm ci
+            # `changeset status --since` compares against a ref, so `main` has to
+            # exist locally: a pull-request checkout is a detached merge commit
+            # with no branches.
+            - name: Fetch main
+              run: git fetch --no-tags origin main:refs/remotes/origin/main
+            # `changeset-release/*` is the branch changesets/action opens the
+            # version pull request from.
+            - name: Changeset present
+              if: ${{ !startsWith(github.head_ref, 'changeset-release/') }}
+              run: npm run changeset:check
+            - name: This pull request is the bump
+              if: ${{ startsWith(github.head_ref, 'changeset-release/') }}
+              run: >-
+                  echo 'Version pull request: it consumes the changesets rather
+                  than declaring one.'
