@@ -1,0 +1,158 @@
+{{- /*
+  Package landing page.
+
+  Six packages publish a landing at their own prefix — /sohl/, /thalorna/,
+  /kethira/ and the rest (issue #33). Each one has the same job: say what the
+  package is, say how to install it, and route the reader onward. Built
+  separately they would not look like siblings, so the shape lives here and a
+  package supplies only its own words and addresses.
+
+  Rendered from the home page's front matter, by `layouts/index.html`, whenever
+  that page declares `type: homepage` or carries a `landing` map. The whole
+  contract is documented in README.md under "A package landing page"; the
+  summary is:
+
+    type            "homepage" — what a package's `content/_index.md` declares
+                    to select this layout.               (page front matter)
+    title           Hero heading.                        (page front matter)
+    description     Hero standfirst.                     (page front matter)
+    banner          Hero image — resolved by hero-banner.html, so it obeys the
+                    same order and the same CDN indirection as every other
+                    banner on the site. With none set, that order lands on
+                    `images/banners/homepage.webp` for a `type: homepage` page,
+                    since the subtype default is keyed on the page's type.
+                                                         (page front matter)
+
+    landing.lead                 Opening paragraph.
+    landing.install.heading      Heading above the install block.
+    landing.install.intro        Prose above the URL.
+    landing.install.url          The manifest URL, set to be read and copied.
+    landing.install.note         Prose below it — the required host version,
+                                 where to report a fault.
+    landing.cards.heading        Heading above the card grid.
+    landing.cards.source         "sections" builds one card per top-level site
+                                 section from its title, description and
+                                 permalink. Omit to supply cards by hand.
+    landing.cards.items          The cards. Each: `title`, optional `url`
+                                 (makes the title a link), optional
+                                 `description`, optional `links` — each of
+                                 those `title`, `url`, optional `note`.
+                                 A card or link may carry `href` instead of
+                                 `url` for an address that is already resolved
+                                 against this site and must be used verbatim;
+                                 that is what the derived mode fills in.
+    landing.notices              Standing notices — a licence carve-out, an
+                                 attribution. Each: optional `title`, `body`.
+    landing.closing              Closing paragraph, centred.
+
+  Every one of those is optional and every one is guarded: a package supplying
+  a lead and an install block and nothing else renders those two and stops. A
+  section with no data renders nothing at all rather than an empty heading or a
+  gap, which is this theme's standing silent-disappear convention.
+
+  Prose fields are rendered as **inline** markdown through `.RenderString`, so
+  links and emphasis work in any of them and none of them can inject a stray
+  block wrapper into the layout. A package with more to say than the contract
+  carries writes it as the page body, which renders below the lead.
+
+  The page is two bands, not five, so the vertical rhythm does not depend on
+  which parts a package happens to supply: "what it is and how to get it",
+  then "where to go next".
+*/ -}}
+{{- $page := . -}}
+{{- $landing := .Params.landing | default dict -}}
+{{- $cards := $landing.cards | default dict -}}
+
+{{- /* The cards, resolved before anything renders, so an empty result can
+       silently take the whole second band with it. */ -}}
+{{- $items := $cards.items | default slice -}}
+{{- if eq ($cards.source | default "") "sections" -}}
+  {{- /* Built from the site's own top-level sections, so a content-driven
+         package gains and loses a card as its build emits and retires one,
+         with nobody having to remember. */ -}}
+  {{- range $page.Site.Sections.ByTitle -}}
+    {{- /* `href`, not `url`: a section's RelPermalink is already resolved
+           against this site, prefix and all, and must not be resolved a
+           second time. */ -}}
+    {{- $items = $items | append (dict
+        "title" .Title
+        "href" .RelPermalink
+        "description" (.Params.description | default "")) -}}
+  {{- end -}}
+{{- end -}}
+
+{{- partial "hero-banner.html" . -}}
+
+{{- if or $landing.lead $landing.install $page.Content }}
+<section class="home-sections">
+  {{- with $landing.lead }}
+  <p class="lead">{{ $page.RenderString . }}</p>
+  {{- end }}
+
+  {{- with $page.Content }}
+  <div class="landing-body single-body">{{ . }}</div>
+  {{- end }}
+
+  {{- with $landing.install }}
+  <div class="install">
+    {{- with .heading }}
+    <h2>{{ . }}</h2>
+    {{- end }}
+    {{- with .intro }}
+    <p>{{ $page.RenderString . }}</p>
+    {{- end }}
+    {{- with .url }}
+    <code class="install-url">{{ . }}</code>
+    {{- end }}
+    {{- with .note }}
+    <p class="install-note">{{ $page.RenderString . }}</p>
+    {{- end }}
+  </div>
+  {{- end }}
+</section>
+{{- end }}
+
+{{- if or $items $landing.notices $landing.closing }}
+<section class="home-sections">
+  {{- if $items }}
+  {{- with $cards.heading }}
+  <h2 class="section-heading">{{ . }}</h2>
+  {{- end }}
+
+  <div class="doors">
+    {{- range $items }}
+    <div class="door">
+      {{- $href := .href | default "" }}{{ if not $href }}{{ with .url }}{{ $href = partial "site-url.html" (dict "site" $page.Site "url" .) }}{{ end }}{{ end }}
+      <h3>{{ if $href }}<a href="{{ $href }}">{{ .title }}</a>{{ else }}{{ .title }}{{ end }}</h3>
+      {{- with .description }}
+      <p>{{ $page.RenderString . }}</p>
+      {{- end }}
+      {{- with .links }}
+      <ul>
+        {{- range . }}
+        {{- $lhref := .href | default "" }}{{ if not $lhref }}{{ $lhref = partial "site-url.html" (dict "site" $page.Site "url" .url) }}{{ end }}
+        <li><a href="{{ $lhref }}">{{ .title }}</a>{{ with .note }} — {{ $page.RenderString . }}{{ end }}</li>
+        {{- end }}
+      </ul>
+      {{- end }}
+    </div>
+    {{- end }}
+  </div>
+  {{- end }}
+
+  {{- range $landing.notices }}
+  <div class="landing-notice">
+    {{- with .title }}
+    <h2>{{ . }}</h2>
+    {{- end }}
+    {{- with .body }}
+    <p>{{ $page.RenderString . }}</p>
+    {{- end }}
+  </div>
+  {{- end }}
+
+  {{- with $landing.closing }}
+  <p class="lead lead-centred">{{ $page.RenderString . }}</p>
+  {{- end }}
+</section>
+{{- end }}

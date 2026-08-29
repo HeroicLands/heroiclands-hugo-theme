@@ -165,6 +165,125 @@ baseURL = "https://example.org/"        # or "https://example.org/sohl/"
 of `.home-featured`, because they are that CSS grid's items — each is placed by
 its modifier class.
 
+## A package landing page
+
+Every published package has a landing at its own prefix —
+`https://www.heroiclands.org/<package>/` — and they all do the same job: say
+what the package is, say how to install it, and route the reader onward. Built
+independently they would not look like siblings, so the shape lives here
+(`layouts/partials/landing.html`) and a package supplies only its own words and
+addresses.
+
+It is **front matter, not site configuration**, because a landing is a page:
+one file, `content/_index.md`, is the whole of a package's landing.
+
+```yaml
+---
+# The layout is selected by either of these: `type: homepage` is what a
+# package's generated `_index.md` declares, and the presence of `landing`
+# selects it too, so a page that has one need not also declare the other.
+type: homepage
+title: Song of Heroic Lands # hero heading
+description: A classless, skill-based fantasy system … # hero standfirst
+
+# The hero image. This is the same `banner:` every other page in this theme
+# uses, resolved by `partials/hero-banner.html` in the same documented order —
+# an absolute URL as-is, otherwise a fragment under `images/`, otherwise the
+# subtype default at `images/banners/{type}.webp`, otherwise
+# `images/banners/default.webp` — and through `params.cdnBaseURL` like every
+# other image. A `type: homepage` page with no `banner:` therefore resolves to
+# `images/banners/homepage.webp`; set `banner:` unless that file exists.
+banner: brand/sohl-banner.webp
+
+landing:
+  # Opening paragraph. Optional, like everything below it.
+  lead: >-
+    Everything published for the system lives under this address …
+
+  # How to install the package. Every field is optional; the block renders
+  # only if `install` is present at all.
+  install:
+    heading: Install it in Foundry
+    intro: In Foundry's setup screen, choose **Game Systems → Install System** …
+    url: https://github.com/…/releases/latest/download/system.json
+    note: Requires Foundry VTT v14. …
+
+  # The cards. Two ways to fill them, and a package may use either, both, or
+  # neither — see "Authored cards, derived cards" below.
+  cards:
+    heading: Start where you are
+    source: sections # optional; one card per top-level site section
+    items:
+      - title: At the table
+        url: kb/ # optional — makes the card's title a link
+        description: Running or playing in a game …
+        links:
+          - title: User Guide
+            url: kb/user-guide/
+            note: playing with it, sheet by sheet # optional trailing gloss
+
+  # Standing notices — a licence carve-out, an attribution. Each renders as a
+  # full-measure block rather than a card, because it is addressed to every
+  # reader rather than being one route among several.
+  notices:
+    - title: Licence
+      body: Unofficial fan material, published under …
+
+  # Closing paragraph, centred.
+  closing: The whole reference is browsable from the [knowledgebase](kb/) …
+---
+```
+
+### Authored cards, derived cards
+
+A package's cards can be **authored** (`items`) or **derived**
+(`source: sections`), and neither is required, because the packages genuinely
+differ:
+
+- A **system** package groups its cards editorially — "At the table", "What it
+  ships with", "Building on it" — and links out to surfaces that are not
+  sections at all, such as generated API documentation. Only an authored list
+  can express that, so `items` exists.
+- A **content** package's landing is its section index: one card per section,
+  each with the section's own description. Writing those by hand would mean
+  re-writing them every time the content build emits or retires a section, so
+  `source: "sections"` builds them from `.Site.Sections.ByTitle` — the site's
+  own list, in its own order.
+- A **carve-out** package publishes exactly one page and may not describe its
+  content, so it supplies a lead, an install block and a notice, and no cards
+  whatsoever. Omitting `cards` renders no heading, no grid and no gap.
+
+`items` and `source` compose: authored cards render first, derived ones after,
+so a content package can lead with a hand-written card and let the rest follow
+from its sections.
+
+### How the values are treated
+
+- **Every field is optional and every section is guarded.** A missing section
+  renders nothing at all — not an empty heading, not a blank band. This is the
+  theme's standing silent-disappear convention, and it is what lets one layout
+  serve a landing with three rich cards and one with none.
+- **Prose fields are inline markdown.** `lead`, `closing`, `install.intro`,
+  `install.note`, a card's `description` and a link's `note` are rendered with
+  `.RenderString`, so links and emphasis work in all of them and none can
+  inject a block wrapper into the layout. A package with more to say than the
+  contract carries writes it as the page body, below the lead.
+- **`install.url` is not markdown.** It is set as text to be read and copied.
+- **Link addresses resolve against the site.** A `url` that is already absolute
+  is used as-is; anything else is resolved with `relURL` by
+  `partials/site-url.html`, so a package served under a path prefix writes
+  `kb/rules/` and gets `/sohl/kb/rules/` without naming the prefix. A card or a
+  link may carry **`href`** instead, for an address that is already resolved and
+  must be used verbatim — which is what `source: "sections"` fills in, since a
+  section's permalink already carries the prefix.
+- **A relative link inside a prose field is emitted as written**, and the
+  browser resolves it against the landing's own address — which is the package
+  root. So `[the rules](kb/rules/)` in a `lead` or a `closing` is correct too,
+  and equally free of the prefix.
+- **The classes are the theme's** — `.lead`, `.install`, `.doors`, `.door`,
+  `.landing-notice` and the rest live in `static/css/style.css`, expressed in
+  the palette tokens. A landing needs no CSS of its own, and should ship none.
+
 ## License
 
 Code (layouts, CSS): GPL-3.0-or-later. Content/data authored for The World of

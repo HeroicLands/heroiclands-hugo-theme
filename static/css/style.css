@@ -455,6 +455,169 @@ img {
   color: #fff;
 }
 
+/* ---- Package landing ----
+
+   The home layout's landing shape (layouts/partials/landing.html): a lead,
+   an install block, a grid of cards, standing notices and a closing line.
+
+   These classes were a per-page <style> block in one package repository,
+   which meant the other five could only get the same look by copying it
+   (issue #33). Here they are shared, and every colour, face and measure is a
+   token, so a consumer that redefines the palette on :root — or a light
+   scheme added to this file later — re-colours the landing along with the
+   rest of the site. No literal colour appears below.
+   ---- */
+
+/* Lead and closing paragraphs, and the page body when a package writes one.
+   Held to a measure a reader can track across, and centred in the band. */
+.lead,
+.landing-body {
+  max-width: 780px;
+  margin: 0 auto 2rem;
+  line-height: 1.75;
+}
+
+.lead-centred {
+  text-align: center;
+  margin-top: 2rem;
+}
+
+.section-heading {
+  text-align: center;
+}
+
+/* Install block: the manifest URL is the payload, so it is set to be read and
+   copied rather than decorated. */
+.install {
+  max-width: 780px;
+  margin: 0 auto;
+  border: 1px solid var(--border-light);
+  border-radius: 8px;
+  background: var(--bg-card);
+  padding: 1.5rem 1.75rem;
+}
+
+.install h2 {
+  font-family: var(--font-display);
+  font-size: 1.4rem;
+  margin-bottom: 0.75rem;
+}
+
+.install p {
+  line-height: 1.7;
+}
+
+.install-url {
+  display: block;
+  padding: 0.75rem 1rem;
+  background: var(--bg-deeper);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  font-family: var(--font-mono);
+  font-size: 0.9rem;
+  color: var(--text);
+  word-break: break-all;
+  margin: 0.75rem 0;
+}
+
+.install-note {
+  color: var(--text-muted);
+  font-size: 0.92rem;
+  margin: 0;
+}
+
+/* The cards: each a heading, a line of orientation, and the few links that
+   actually answer it. A fixed card width rather than a fitted grid, so a
+   package with three cards and one with twenty both read as the same object
+   at the same size. */
+.doors {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.5rem;
+  justify-content: center;
+  margin-top: 1.5rem;
+}
+
+.door {
+  width: 340px;
+  border: 1px solid var(--border-light);
+  border-radius: 8px;
+  background: var(--bg-card);
+  padding: 1.5rem;
+}
+
+.door h3 {
+  font-family: var(--font-display);
+  font-size: 1.25rem;
+  color: var(--gold);
+  margin-bottom: 0.5rem;
+}
+
+.door h3 a {
+  color: var(--gold);
+}
+
+.door h3 a:hover {
+  color: var(--accent-hover);
+}
+
+.door > p {
+  color: var(--text-muted);
+  font-size: 0.92rem;
+  line-height: 1.6;
+  margin-bottom: 0.9rem;
+}
+
+.door ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.door li {
+  margin-bottom: 0.5rem;
+  line-height: 1.5;
+}
+
+.door li a {
+  font-weight: 600;
+}
+
+/* A standing notice — a licence carve-out, an attribution. Full width of the
+   measure rather than a card, because it is addressed to every reader rather
+   than being one route among several. */
+.landing-notice {
+  max-width: 780px;
+  margin: 0 auto 1.5rem;
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--gold-dim);
+  border-radius: 4px;
+  background: var(--bg-card);
+  padding: 1.25rem 1.5rem;
+}
+
+.landing-notice h2 {
+  font-family: var(--font-display);
+  font-size: 1.15rem;
+  color: var(--gold);
+  margin-bottom: 0.5rem;
+}
+
+.landing-notice p {
+  color: var(--text-muted);
+  font-size: 0.94rem;
+  line-height: 1.65;
+  margin: 0;
+}
+
+/* One card per row once two no longer fit beside each other; the fixed width
+   would otherwise overflow a narrow viewport. */
+@media (max-width: 400px) {
+  .door {
+    width: 100%;
+  }
+}
+
 /* ---- Section List Pages ---- */
 
 .section-header {
