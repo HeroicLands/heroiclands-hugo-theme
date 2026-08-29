@@ -187,12 +187,10 @@ title: Song of Heroic Lands # hero heading
 description: A classless, skill-based fantasy system … # hero standfirst
 
 # The hero image. This is the same `banner:` every other page in this theme
-# uses, resolved by `partials/hero-banner.html` in the same documented order —
-# an absolute URL as-is, otherwise a fragment under `images/`, otherwise the
-# subtype default at `images/banners/{type}.webp`, otherwise
-# `images/banners/default.webp` — and through `params.cdnBaseURL` like every
-# other image. A `type: homepage` page with no `banner:` therefore resolves to
-# `images/banners/homepage.webp`; set `banner:` unless that file exists.
+# uses, resolved by `partials/hero-banner.html` in the documented order and
+# through `params.cdnBaseURL` like every other image — see "The hero banner"
+# below. A landing with no `banner:` gets `images/banners/default.webp`, and
+# `banner: none` declines a hero image entirely; neither can 404.
 banner: brand/sohl-banner.webp
 
 landing:
@@ -283,6 +281,52 @@ from its sections.
 - **The classes are the theme's** — `.lead`, `.install`, `.doors`, `.door`,
   `.landing-notice` and the rest live in `static/css/style.css`, expressed in
   the palette tokens. A landing needs no CSS of its own, and should ship none.
+
+## The hero banner
+
+Nearly every page in this theme opens with a hero band, and
+`partials/hero-banner.html` decides what sits behind it. The image is served
+from the consumer's `params.cdnBaseURL`, so the theme resolves a *path* and
+never a host.
+
+**Resolution order.**
+
+1. `banner:` in the page's front matter. `none` (or `false`) declines a hero
+   image; a full URL is used as-is; anything else is a fragment under `images/`.
+2. `images/banners/{subtype}.webp`, where the subtype is the page's `category`
+   for a `type: doc` page and its `type` otherwise.
+3. `images/banners/default.webp` — when the page has no type, **and** whenever
+   the name picked by 1 or 2 is not in the declared inventory.
+
+**Why step 3 is a declaration, not a test.** Hugo cannot ask a remote host
+whether a URL exists, so before this the resolved path was emitted unchecked
+and a banner that had never been drawn 404'd in silence — the band rendered
+with its title, palette and gradient intact behind a dead URL, and nothing
+failed: not the build, not Hugo, not the deploy guard (issue #36).
+`data/banners.yaml` is the declaration that stands in for the test the template
+cannot make. A name listed in its `available` is asserted to exist; a resolved
+name that is absent falls back to `fallback` and Hugo logs one deduplicated
+warning naming the missing banner and the first page that wanted it. The
+fallback applies only to a relative path landing directly in the declared
+`dir` — an absolute URL, and a fragment pointing anywhere else under `images/`,
+pass through untouched, because the theme has no inventory for either and must
+not second-guess an address it cannot know about.
+
+**Keeping the inventory honest.** `npm run lint:banners`
+(`utils/check-banners.mjs`, part of `npm run lint`) fetches every declared name
+from the asset host and fails on any non-200, so a name that was added
+optimistically is caught here rather than on a published page. It defaults to
+the Heroic Lands CDN and takes `--base` / `BANNER_BASE_URL` for any other host.
+A consumer publishing its own artwork set replaces the whole list by shipping
+its own `data/banners.yaml`, which Hugo reads in preference to the theme's, and
+can run the same check against it.
+
+**Declining a hero image.** `banner: none` renders the band with no image at
+all — the title, the palette and the `.hero-with-image` gradient, which is what
+gives the band its presence. This is deliberately distinct from *not having one
+yet*: a package may have a standing editorial reason to publish no imagery, as
+the fan-material carve-outs do, and falling back to a default for those would
+substitute artwork where the considered answer was "none".
 
 ## License
 
