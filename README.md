@@ -192,6 +192,15 @@ addresses.
 It is **front matter, not site configuration**, because a landing is a page:
 one file, `content/_index.md`, is the whole of a package's landing.
 
+A landing need not be the home page. A package that mounts its content tree one
+level down publishes a second front page there — a knowledgebase at
+`/<package>/kb/`, say — and that page wants the same shape. Declaring
+`type: landing` on that section's own `_index.md` selects
+`layouts/landing/list.html`, which renders the identical contract. Typing it is
+what keeps the template off every section below the mount: Hugo's lookup walks
+up a page's path, so an untyped template at the mount would serve every section
+under it, and each would render the mount's front page.
+
 ```yaml
 ---
 # The layout is selected by either of these: `type: homepage` is what a
@@ -225,11 +234,17 @@ landing:
   # neither — see "Authored cards, derived cards" below.
   cards:
     heading: Start where you are
-    source: sections # optional; one card per top-level site section
+    source: sections # optional; one card per section of THIS page
+    banners: true # optional; give each derived card its section's `banner:`
+    exclude: [credits, macro] # optional; sections kept off this landing
+    groups: # optional; derived cards gathered under a heading
+      - heading: Gear
+        sections: [armorgear, weapongear]
     items:
       - title: At the table
         url: kb/ # optional — makes the card's title a link
         description: Running or playing in a game …
+        banner: banners/user-guide.webp # optional card image
         links:
           - title: User Guide
             url: kb/user-guide/
@@ -260,8 +275,8 @@ differ:
 - A **content** package's landing is its section index: one card per section,
   each with the section's own description. Writing those by hand would mean
   re-writing them every time the content build emits or retires a section, so
-  `source: "sections"` builds them from `.Site.Sections.ByTitle` — the site's
-  own list, in its own order.
+  `source: "sections"` builds them from the sections of the page being
+  rendered, in `.ByTitle` order.
 - A **carve-out** package publishes exactly one page and may not describe its
   content, so it supplies a lead, an install block and a notice, and no cards
   whatsoever. Omitting `cards` renders no heading, no grid and no gap.
@@ -269,6 +284,61 @@ differ:
 `items` and `source` compose: authored cards render first, derived ones after,
 so a content package can lead with a hand-written card and let the rest follow
 from its sections.
+
+**Which sections are derived.** The **rendering page's own** sections. On a home
+page that is the site's top-level sections — Hugo defines one as the other — so
+a package landing at a package's prefix derives exactly the list it always did.
+A landing one level down is where the two part company: a package that mounts
+its tree at `kb/` has a single top-level section, and deriving from the site
+would render one card pointing at the page the reader is already on. Reading the
+page's own sections is the general case, and it is why a nested landing works at
+all.
+
+**Card images.** `banners: true` gives every derived card its section's own
+`banner:` as a card image, resolved exactly the way a hero band's is — the same
+`none`, the same `params.cdnBaseURL` indirection, the same declared-inventory
+guard (see "The hero banner"). A section with no banner renders the text card it
+renders without the option. It is **opt-in** rather than automatic because a
+section's banner is drawn for that section's hero: a landing that has always
+listed its sections as text cards would otherwise silently become a wall of
+imagery on the day this theme was upgraded. An authored card carries `banner:`
+of its own and needs no option — writing it is the opt-in.
+
+**Curation.** `exclude` is a list of section names kept off the landing — the
+section's own directory name, which is the last segment of its address and the
+name the consuming build knows it by. It is stated as an *exclusion* rather than
+as a list of what to include so that deriving keeps its promise: a section
+nobody has said anything about still appears, so a new content type is on the
+landing the day it exists rather than the day somebody remembers to add it.
+
+**Grouping.** `groups` gathers derived cards under editorial headings, each
+group naming the sections it takes:
+
+```yaml
+groups:
+  - heading: Actors
+    sections: [being]
+  - heading: Gear
+    sections: [armorgear, containergear, miscgear, projectilegear, weapongear]
+```
+
+Grouping is declared **here, on the landing**, and not on each section, because
+it is editorial rather than structural: every card on such a page is a sibling
+section under one mount, so nothing in the hierarchy distinguishes "Actors" from
+"Gear", and the same section could be filed differently by a different landing.
+Keeping it in one file also means the arrangement can be read as a whole.
+
+The bands render in a fixed order — authored `items`, then the groups in the
+order they are declared, then everything derived that no group named. That last
+row is the same gap-filling promise `_default/list.html` makes about orphaned
+pages: a section this landing has never been told about is visible rather than
+lost, and can be filed into a group later. Within a group the order is the
+`.ByTitle` order the derivation already produced, so grouping needs no ordering
+mechanism of its own.
+
+A grouped card's title is an `<h4>`, sitting under its group's `<h3>` heading;
+an ungrouped one stays an `<h3>`. The document outline stays ordered either way,
+and a landing with no groups renders exactly the markup it did before.
 
 ### How the values are treated
 
@@ -326,6 +396,12 @@ fallback applies only to a relative path landing directly in the declared
 `dir` — an absolute URL, and a fragment pointing anywhere else under `images/`,
 pass through untouched, because the theme has no inventory for either and must
 not second-guess an address it cannot know about.
+
+**One resolver.** The order above lives in `partials/banner-url.html`, which
+returns a URL or an empty string, and `hero-banner.html` is one of its callers;
+a derived landing card is the other. The difference between them is step 2: a
+hero band asks for the subtype default, a card does not, so a section with no
+banner of its own stays a text card.
 
 **Keeping the inventory honest.** `npm run lint:banners`
 (`utils/check-banners.mjs`, part of `npm run lint`) fetches every declared name
