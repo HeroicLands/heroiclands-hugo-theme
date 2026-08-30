@@ -1,0 +1,72 @@
+{{- /*
+  One card on a package landing (`partials/landing.html`).
+
+  One implementation, because a landing now builds cards three ways — authored
+  `items`, derived sections grouped under a heading, and the derived remainder
+  — and three copies of this markup would drift (issue #41).
+
+  Params:
+    page   — the page being rendered, for `.RenderString` and address
+             resolution.
+    card   — the card: `title`, optional `url` / `href`, `description`,
+             `banner`, `links`.
+    level  — heading element for the card title, "h3" by default. A card
+             inside a group sits under that group's own heading, so it is
+             passed "h4" there and the document outline stays ordered.
+
+  `href` wins over `url`: a `url` is resolved against the site, and an `href`
+  is an address that already is.
+*/ -}}
+{{- $page := .page -}}
+{{- $card := .card -}}
+{{- /* Clamped to the two levels this layout uses, then marked safe: the tag
+       is the theme's own, never a consumer string, and `<{{ $tag }}>` would
+       otherwise be escaped into visible text. */ -}}
+{{- $tag := cond (eq (.level | default "h3") "h4") "h4" "h3" -}}
+{{- $open := printf "<%s>" $tag | safeHTML -}}
+{{- $close := printf "</%s>" $tag | safeHTML -}}
+{{- $href := $card.href | default "" -}}
+{{- if not $href }}{{ with $card.url }}{{ $href = partial "site-url.html" (dict "site" $page.Site "url" .) }}{{ end }}{{ end -}}
+{{- /* A card image is the section's own `banner:`, resolved exactly as a hero
+       band's is — same `none`, same CDN indirection, same declared-inventory
+       guard. No subtype default: a card with no banner is a text card. */ -}}
+{{- $img := "" -}}
+{{- with $card.banner }}{{ $img = partial "banner-url.html" (dict "site" $page.Site "banner" . "context" $page.RelPermalink) }}{{ end -}}
+{{- if $img -}}
+<div class="door door-with-image">
+      {{- if $href }}
+      <a class="door-image" href="{{ $href }}"><img src="{{ $img }}" alt="{{ $card.title }}" loading="lazy"></a>
+      {{- else }}
+      <img class="door-image" src="{{ $img }}" alt="{{ $card.title }}" loading="lazy">
+      {{- end }}
+      <div class="door-body">
+        {{ $open }}{{ if $href }}<a href="{{ $href }}">{{ $card.title }}</a>{{ else }}{{ $card.title }}{{ end }}{{ $close }}
+        {{- with $card.description }}
+        <p>{{ $page.RenderString . }}</p>
+        {{- end }}
+        {{- with $card.links }}
+        <ul>
+          {{- range . }}
+          {{- $lhref := .href | default "" }}{{ if not $lhref }}{{ $lhref = partial "site-url.html" (dict "site" $page.Site "url" .url) }}{{ end }}
+          <li><a href="{{ $lhref }}">{{ .title }}</a>{{ with .note }} — {{ $page.RenderString . }}{{ end }}</li>
+          {{- end }}
+        </ul>
+        {{- end }}
+      </div>
+    </div>
+{{- else -}}
+<div class="door">
+      {{ $open }}{{ if $href }}<a href="{{ $href }}">{{ $card.title }}</a>{{ else }}{{ $card.title }}{{ end }}{{ $close }}
+      {{- with $card.description }}
+      <p>{{ $page.RenderString . }}</p>
+      {{- end }}
+      {{- with $card.links }}
+      <ul>
+        {{- range . }}
+        {{- $lhref := .href | default "" }}{{ if not $lhref }}{{ $lhref = partial "site-url.html" (dict "site" $page.Site "url" .url) }}{{ end }}
+        <li><a href="{{ $lhref }}">{{ .title }}</a>{{ with .note }} — {{ $page.RenderString . }}{{ end }}</li>
+        {{- end }}
+      </ul>
+      {{- end }}
+    </div>
+{{- end -}}

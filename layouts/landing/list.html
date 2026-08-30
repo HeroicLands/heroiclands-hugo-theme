@@ -1,0 +1,22 @@
+{{- /*
+  A package landing that is a *section* rather than the home page.
+
+  `layouts/index.html` renders the landing at a package's own prefix. A package
+  that mounts its content tree one level down publishes a second front page
+  there — a knowledgebase at `/<package>/kb/`, say — and that page wants the
+  same shape: a hero, a lead, and a grid of cards derived from what the build
+  emitted (issue #41).
+
+  Selected by `type: landing` on that section's `_index.md`, which is what
+  `package-build`'s generated mount landing carries. Typing it is what keeps
+  the template off every section below the mount: Hugo's lookup walks up a
+  page's path, so a template placed at the mount itself would serve every
+  untyped section under it, and each would render the mount's front page.
+
+  No breadcrumbs. The landing partial opens with the hero band, and a landing
+  is a front page rather than a stop on a trail — the header's navigation is
+  the way back up.
+*/ -}}
+{{ define "main" }}
+{{- partial "landing.html" . -}}
+{{ end }}

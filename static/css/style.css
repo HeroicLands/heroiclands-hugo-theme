@@ -546,18 +546,24 @@ img {
   padding: 1.5rem;
 }
 
-.door h3 {
+/* A card inside a group carries an h4 rather than an h3, so that the group's
+   own heading sits above it in the outline. It is the same card title either
+   way, so it is the same rule. */
+.door h3,
+.door h4 {
   font-family: var(--font-display);
   font-size: 1.25rem;
   color: var(--gold);
   margin-bottom: 0.5rem;
 }
 
-.door h3 a {
+.door h3 a,
+.door h4 a {
   color: var(--gold);
 }
 
-.door h3 a:hover {
+.door h3 a:hover,
+.door h4 a:hover {
   color: var(--accent-hover);
 }
 
@@ -581,6 +587,70 @@ img {
 
 .door li a {
   font-weight: 600;
+}
+
+/* A card image — the section's own hero banner, at the banner aspect so a
+   grid of them lines up whatever each drawing's intrinsic size is. The card's
+   padding moves to an inner body so the image sits edge to edge; a text card
+   is untouched. */
+.door-with-image {
+  padding: 0;
+  overflow: hidden;
+}
+
+.door-image {
+  display: block;
+}
+
+.door-image img,
+img.door-image {
+  display: block;
+  width: 100%;
+  aspect-ratio: 1792 / 768;
+  object-fit: cover;
+  background: var(--bg-deeper);
+}
+
+.door-body {
+  padding: 1.5rem;
+}
+
+/* Derived cards gathered under an editorial heading — "Actors", "Gear". The
+   group is a box around its own grid so the fence is visible at a glance,
+   which is the whole point of saying these cards belong together. Groups sit
+   beside each other and wrap, so a group of one and a group of five read as
+   two boxes rather than two full-width bands. */
+.doors-groups {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.75rem;
+  justify-content: center;
+  margin: 1.5rem auto 0;
+}
+
+.doors-group {
+  margin: 0;
+  border: 1px solid var(--border-light);
+  border-radius: 8px;
+  background: var(--bg-card);
+  padding: 0.25rem 1.5rem 1.5rem;
+}
+
+.doors-group-heading {
+  font-family: var(--font-display);
+  font-size: 1.15rem;
+  font-weight: 600;
+  color: var(--gold);
+  letter-spacing: 0.02em;
+  text-align: center;
+  margin-top: 1.25rem;
+}
+
+/* A card already carries its own frame, so inside a group it drops back to the
+   surface tone and lets the group's box be the boundary. */
+.doors-group .door {
+  background: var(--surface);
+  border-color: var(--border);
 }
 
 /* A standing notice — a licence carve-out, an attribution. Full width of the

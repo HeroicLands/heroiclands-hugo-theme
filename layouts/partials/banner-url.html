@@ -1,0 +1,93 @@
+{{- /*
+  Resolve a `banner:` value to a URL, or to "" when there is none.
+
+  Split out of `hero-banner.html` (issue #41) because a hero band is no longer
+  the only thing that shows a banner: a derived landing card shows its
+  section's. Two copies of this would drift, and the one that drifted would
+  fail the way issue #36 already failed once — silently, behind a dead URL — so
+  there is one implementation and the hero band is its first caller.
+
+  Resolution, in order:
+    1. `banner` — `none` (or `false`) declines an image and returns "". A full
+       URL is used as-is; anything else is a fragment under `images/`.
+    2. `images/banners/{subtype}.webp`, when `banner` is unset and a `subtype`
+       is supplied. A caller that passes no subtype gets "" instead, which is
+       what a card wants: a section with no banner of its own renders as the
+       text card it rendered before.
+    3. `images/banners/{fallback}` — whenever the name picked by 1 or 2 is not
+       in `data/banners.yaml`'s declared inventory. Hugo cannot ask a remote
+       host whether a URL exists, so the declaration stands in for the test;
+       see `hero-banner.html` for why, and `data/banners.yaml` for how the
+       list is kept honest.
+
+  The check applies only to a relative path resolving directly inside the
+  declared banner directory. An absolute URL, and a fragment pointing anywhere
+  else under `images/`, pass through untouched: the theme has no inventory for
+  either and must not second-guess an address it cannot know about.
+
+  Whatever survives resolves through `cdn-url.html`, so the theme names a path
+  and never a host.
+
+  Usage:
+    {{ partial "banner-url.html" (dict "site" .Site "banner" .Params.banner
+                                       "subtype" $subtype "context" .RelPermalink) }}
+
+  Params:
+    site     — the site context (.Site), for `params.cdnBaseURL`.
+    banner   — the raw `banner:` value; may be unset, `none`/`false`, a
+               fragment or an absolute URL.
+    subtype  — optional. The name to default to when `banner` is unset. Omit
+               for "no banner means no image".
+    context  — optional. A page address, named in the missing-banner warning so
+               the report says where the want came from.
+*/ -}}
+{{- $site := .site -}}
+{{- $subtype := .subtype | default "" -}}
+{{- $context := .context | default "" -}}
+
+{{- $banners := hugo.Data.banners | default dict -}}
+{{- $dir := $banners.dir | default "images/banners" -}}
+{{- $fallback := $banners.fallback | default "default.webp" -}}
+{{- $available := $banners.available | default slice -}}
+
+{{- /* `none`/`false` is a decision, not an absence, so it is read before the
+       resolution order rather than as a step in it. Formatted rather than
+       tested for truth, and deliberately not passed through `default`: both
+       `false` and an unset banner are falsy, and only formatting tells them
+       apart. */ -}}
+{{- $raw := printf "%v" .banner -}}
+{{- $declined := or (eq (lower $raw) "none") (eq $raw "false") -}}
+
+{{- $banner := "" -}}
+{{- $absolute := false -}}
+{{- if not $declined -}}
+  {{- with .banner -}}
+    {{- $banner = printf "images/%s" (strings.TrimPrefix "/" .) -}}
+    {{- if or (hasPrefix . "http://") (hasPrefix . "https://") (hasPrefix . "//") -}}
+      {{- $banner = . -}}
+      {{- $absolute = true -}}
+    {{- end -}}
+  {{- else -}}
+    {{- with $subtype -}}
+      {{- $banner = printf "%s/%s.webp" $dir . -}}
+    {{- end -}}
+  {{- end -}}
+
+  {{- /* The declared-existence check. Deduplicated by name, so a subtype with
+         no artwork is reported once per build rather than once per page. */ -}}
+  {{- if and $banner (not $absolute) (eq (path.Dir $banner) $dir) -}}
+    {{- $name := strings.TrimSuffix (path.Ext $banner) (path.Base $banner) -}}
+    {{- if not (in $available $name) -}}
+      {{- warnidf (printf "hero-banner-missing-%s" $name)
+          "hero-banner: no banner named %q in the shared artwork set; falling back to %s/%s. Draw it and add %q to data/banners.yaml, or set `banner:` on the page (`banner: none` declines a hero image). First seen on %s."
+          $name $dir $fallback $name $context -}}
+      {{- $banner = printf "%s/%s" $dir $fallback -}}
+    {{- end -}}
+  {{- end -}}
+{{- end -}}
+
+{{- $url := "" -}}
+{{- if $banner -}}
+  {{- $url = partial "cdn-url.html" (dict "site" $site "path" $banner) -}}
+{{- end -}}
+{{- return $url -}}

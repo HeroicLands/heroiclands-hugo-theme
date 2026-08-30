@@ -7,13 +7,16 @@
   separately they would not look like siblings, so the shape lives here and a
   package supplies only its own words and addresses.
 
-  Rendered from the home page's front matter, by `layouts/index.html`, whenever
-  that page declares `type: homepage` or carries a `landing` map. The whole
+  Rendered by `layouts/index.html` from the home page's front matter whenever
+  that page declares `type: homepage` or carries a `landing` map, and by
+  `layouts/landing/list.html` for a landing that is a *section* rather than the
+  home page — a knowledgebase front page one level down, say. The whole
   contract is documented in README.md under "A package landing page"; the
   summary is:
 
     type            "homepage" — what a package's `content/_index.md` declares
-                    to select this layout.               (page front matter)
+                    to select this layout; "landing" on a section's
+                    `_index.md`.                         (page front matter)
     title           Hero heading.                        (page front matter)
     description     Hero standfirst.                     (page front matter)
     banner          Hero image — resolved by hero-banner.html, so it obeys the
@@ -30,13 +33,19 @@
     landing.install.note         Prose below it — the required host version,
                                  where to report a fault.
     landing.cards.heading        Heading above the card grid.
-    landing.cards.source         "sections" builds one card per top-level site
-                                 section from its title, description and
-                                 permalink. Omit to supply cards by hand.
+    landing.cards.source         "sections" builds one card per section of the
+                                 page being rendered. Omit to supply cards by
+                                 hand.
+    landing.cards.exclude        Section names kept off a derived landing.
+    landing.cards.banners        true to give each derived card its section's
+                                 own `banner:` as a card image.
+    landing.cards.groups         Derived cards gathered under headings. Each:
+                                 `heading`, `sections` (the names it takes).
     landing.cards.items          The cards. Each: `title`, optional `url`
                                  (makes the title a link), optional
-                                 `description`, optional `links` — each of
-                                 those `title`, `url`, optional `note`.
+                                 `description`, optional `banner` (a card
+                                 image), optional `links` — each of those
+                                 `title`, `url`, optional `note`.
                                  A card or link may carry `href` instead of
                                  `url` for an address that is already resolved
                                  against this site and must be used verbatim;
@@ -66,20 +75,80 @@
 {{- /* The cards, resolved before anything renders, so an empty result can
        silently take the whole second band with it. */ -}}
 {{- $items := $cards.items | default slice -}}
+{{- $groups := $cards.groups | default slice -}}
+{{- $exclude := $cards.exclude | default slice -}}
+{{- $withBanners := $cards.banners | default false -}}
+
+{{- /* Derived from the sections of the page being rendered, so a
+       content-driven package gains and loses a card as its build emits and
+       retires one, with nobody having to remember.
+
+       `$page.Sections`, not `$page.Site.Sections`: on a home page the two are
+       the same list — Hugo defines the site's sections as the home page's —
+       but a package that mounts its tree one level down (`kb/`, which is what
+       `publish.address.prefix` produces) has exactly one top-level section,
+       and deriving from it would render a single card pointing at the page the
+       reader is already on. Reading the rendering page's own sections is the
+       general case and leaves the home page's list untouched (issue #41). */ -}}
+{{- $derived := slice -}}
 {{- if eq ($cards.source | default "") "sections" -}}
-  {{- /* Built from the site's own top-level sections, so a content-driven
-         package gains and loses a card as its build emits and retires one,
-         with nobody having to remember. */ -}}
-  {{- range $page.Site.Sections.ByTitle -}}
-    {{- /* `href`, not `url`: a section's RelPermalink is already resolved
-           against this site, prefix and all, and must not be resolved a
-           second time. */ -}}
-    {{- $items = $items | append (dict
-        "title" .Title
-        "href" .RelPermalink
-        "description" (.Params.description | default "")) -}}
+  {{- range $page.Sections.ByTitle -}}
+    {{- /* A section is named by the last segment of its address — the
+           directory it is built from, which is the name the consumer's own
+           configuration knows it by. */ -}}
+    {{- $name := path.Base .RelPermalink -}}
+    {{- if not (in $exclude $name) -}}
+      {{- /* `href`, not `url`: a section's RelPermalink is already resolved
+             against this site, prefix and all, and must not be resolved a
+             second time. */ -}}
+      {{- $derived = $derived | append (dict
+          "name" $name
+          "title" .Title
+          "href" .RelPermalink
+          "description" (.Params.description | default "")
+          "banner" (cond $withBanners (.Params.banner | default "") "")) -}}
+    {{- end -}}
   {{- end -}}
 {{- end -}}
+
+{{- /* Grouping is editorial and belongs to the page that publishes it: every
+       card on a landing is a sibling section under the same mount, so nothing
+       in the hierarchy distinguishes "Actors" from "Gear". A group therefore
+       names the sections it takes, and anything it does not name still renders
+       — in a plain row after the groups. That is the same gap-filling promise
+       `_default/list.html` makes about orphaned pages: a section this landing
+       has never been told about appears anyway, so a new content type is
+       visible from the day it exists and can be filed into a group later. */ -}}
+{{- $leadCards := $items -}}
+{{- $groupBands := slice -}}
+{{- $restCards := slice -}}
+{{- if $groups -}}
+  {{- $taken := slice -}}
+  {{- range $groups -}}
+    {{- $group := . -}}
+    {{- $wanted := $group.sections | default slice -}}
+    {{- $held := slice -}}
+    {{- range $derived -}}
+      {{- if in $wanted .name -}}
+        {{- $held = $held | append . -}}
+        {{- $taken = $taken | append .name -}}
+      {{- end -}}
+    {{- end -}}
+    {{- with $held -}}
+      {{- $groupBands = $groupBands | append (dict "heading" ($group.heading | default "") "cards" .) -}}
+    {{- end -}}
+  {{- end -}}
+  {{- range $derived -}}
+    {{- if not (in $taken .name) -}}
+      {{- $restCards = $restCards | append . -}}
+    {{- end -}}
+  {{- end -}}
+{{- else -}}
+  {{- /* No groups: authored cards render first and derived ones after, in one
+         grid — which is what a landing without groups has always been. */ -}}
+  {{- with $derived }}{{ $leadCards = $leadCards | append . }}{{ end -}}
+{{- end -}}
+{{- $anyCards := or $leadCards $groupBands $restCards -}}
 
 {{- partial "hero-banner.html" . -}}
 
@@ -112,32 +181,43 @@
 </section>
 {{- end }}
 
-{{- if or $items $landing.notices $landing.closing }}
+{{- if or $anyCards $landing.notices $landing.closing }}
 <section class="home-sections">
-  {{- if $items }}
+  {{- if $anyCards }}
   {{- with $cards.heading }}
   <h2 class="section-heading">{{ . }}</h2>
   {{- end }}
+  {{- with $leadCards }}
 
   <div class="doors">
-    {{- range $items }}
-    <div class="door">
-      {{- $href := .href | default "" }}{{ if not $href }}{{ with .url }}{{ $href = partial "site-url.html" (dict "site" $page.Site "url" .) }}{{ end }}{{ end }}
-      <h3>{{ if $href }}<a href="{{ $href }}">{{ .title }}</a>{{ else }}{{ .title }}{{ end }}</h3>
-      {{- with .description }}
-      <p>{{ $page.RenderString . }}</p>
-      {{- end }}
-      {{- with .links }}
-      <ul>
-        {{- range . }}
-        {{- $lhref := .href | default "" }}{{ if not $lhref }}{{ $lhref = partial "site-url.html" (dict "site" $page.Site "url" .url) }}{{ end }}
-        <li><a href="{{ $lhref }}">{{ .title }}</a>{{ with .note }} — {{ $page.RenderString . }}{{ end }}</li>
+    {{- range . }}
+    {{ partial "landing-card.html" (dict "page" $page "card" . "level" "h3") }}
+    {{- end }}
+  </div>
+  {{- end }}
+  {{- with $groupBands }}
+
+  <div class="doors-groups">
+    {{- range . }}
+    <div class="doors-group">
+      <h3 class="doors-group-heading">{{ .heading }}</h3>
+      <div class="doors">
+        {{- range .cards }}
+        {{ partial "landing-card.html" (dict "page" $page "card" . "level" "h4") }}
         {{- end }}
-      </ul>
-      {{- end }}
+      </div>
     </div>
     {{- end }}
   </div>
+  {{- end }}
+  {{- with $restCards }}
+
+  <div class="doors">
+    {{- range . }}
+    {{ partial "landing-card.html" (dict "page" $page "card" . "level" "h3") }}
+    {{- end }}
+  </div>
+  {{- end }}
   {{- end }}
 
   {{- range $landing.notices }}

@@ -8,6 +8,10 @@
   Every path below resolves through cdn-url.html against the consuming
   site's `params.cdnBaseURL`; the theme names no host of its own.
 
+  The resolution itself lives in `banner-url.html`, which a derived landing card
+  calls too (issue #41). The order is documented in both places because this is
+  where a reader looking at a banner starts; that partial is where it happens.
+
   Banner image resolution order:
     1. .Params.banner              — author-specified override (frontmatter).
                                      `none` (or `false`) declines a hero image
@@ -46,55 +50,22 @@
   considered answer was "none", so declining has to be sayable.
 */ -}}
 
-{{- $banners := hugo.Data.banners | default dict -}}
-{{- $dir := $banners.dir | default "images/banners" -}}
-{{- $fallback := $banners.fallback | default "default.webp" -}}
-{{- $available := $banners.available | default slice -}}
+{{- /* For narrative content (type=doc) the meaningful kind of page lives in
+       `category` — continent, region, polity, faith, lore, etc. — so prefer
+       that when picking a default banner. */ -}}
+{{- $type := .Params.type | default "" -}}
+{{- $subtype := cond (eq $type "doc") (.Params.category | default "") $type -}}
+{{- if not $subtype }}{{ $subtype = "default" }}{{ end -}}
 
-{{- /* `none`/`false` is a decision, not an absence, so it is read before the
-       resolution order rather than as a step in it. Formatted rather than
-       tested for truth, and deliberately not passed through `default`: both
-       `false` and an unset banner are falsy, and only formatting tells them
-       apart. */ -}}
-{{- $raw := printf "%v" .Params.banner -}}
-{{- $declined := or (eq (lower $raw) "none") (eq $raw "false") -}}
-
-{{- $banner := "" -}}
-{{- $absolute := false -}}
-{{- if not $declined -}}
-  {{- with .Params.banner -}}
-    {{- $banner = printf "images/%s" (strings.TrimPrefix "/" .) -}}
-    {{- if or (hasPrefix . "http://") (hasPrefix . "https://") (hasPrefix . "//") -}}
-      {{- $banner = . -}}
-      {{- $absolute = true -}}
-    {{- end -}}
-  {{- else -}}
-    {{- /* For narrative content (type=doc) the meaningful kind of page
-           lives in `category` — continent, region, polity, faith, lore,
-           etc. — so prefer that when picking a default banner. */ -}}
-    {{- $type := .Params.type | default "" -}}
-    {{- $subtype := cond (eq $type "doc") (.Params.category | default "") $type -}}
-    {{- if not $subtype }}{{ $subtype = "default" }}{{ end -}}
-    {{- $banner = printf "%s/%s.webp" $dir $subtype -}}
-  {{- end -}}
-
-  {{- /* The declared-existence check. Deduplicated by name, so a subtype with
-         no artwork is reported once per build rather than once per page. */ -}}
-  {{- if and (not $absolute) (eq (path.Dir $banner) $dir) -}}
-    {{- $name := strings.TrimSuffix (path.Ext $banner) (path.Base $banner) -}}
-    {{- if not (in $available $name) -}}
-      {{- warnidf (printf "hero-banner-missing-%s" $name)
-          "hero-banner: no banner named %q in the shared artwork set; falling back to %s/%s. Draw it and add %q to data/banners.yaml, or set `banner:` on the page (`banner: none` declines a hero image). First seen on %s."
-          $name $dir $fallback $name .RelPermalink -}}
-      {{- $banner = printf "%s/%s" $dir $fallback -}}
-    {{- end -}}
-  {{- end -}}
-{{- end -}}
-
-{{- $bannerURL := "" -}}
-{{- if $banner -}}
-  {{- $bannerURL = partial "cdn-url.html" (dict "site" .Site "path" $banner) -}}
-{{- end -}}
+{{- /* The order above, the `none` decision and the declared-existence check
+       all live in `banner-url.html`, which a derived landing card calls too
+       (issue #41). A hero band always wants the subtype default; a card never
+       does. */ -}}
+{{- $bannerURL := partial "banner-url.html" (dict
+    "site" .Site
+    "banner" .Params.banner
+    "subtype" $subtype
+    "context" .RelPermalink) -}}
 
 <section class="hero hero-with-image"{{ with $bannerURL }} style="background-image: url('{{ . }}');"{{ end }}>
   <div class="hero-inner">
