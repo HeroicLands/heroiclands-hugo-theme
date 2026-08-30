@@ -1,25 +1,61 @@
 name: Publish to npm
 
-# Publishing is deliberately explicit: cutting a GitHub Release publishes the
-# version currently in package.json. There is no changesets pipeline here — the
-# package is hand-versioned, as it was when it lived in the system repository.
+# The whole release process, from a merged pull request to a version on the
+# registry. Nothing here is started by hand.
+#
+#   1. A pull request declares its bump as a `.changeset/*.md` file — or an
+#      empty one saying it needs none. The "Changeset declared" job in lint.yml
+#      fails it otherwise.
+#   2. Merging it to `main` runs this workflow, which opens or updates the
+#      version pull request: the bump plus the rewritten CHANGELOG.md. An
+#      unreleased state is therefore a pull request sitting in the queue, not an
+#      absence nobody can see (#30).
+#   3. Merging *that* runs this workflow again with no changesets left, so it
+#      falls through to `changeset publish`: npm publish, the `v<version>` tag,
+#      and the GitHub Release with the changelog section as its body.
+#
+# Before #30 this workflow published whatever `package.json` happened to say,
+# triggered by a GitHub Release someone remembered to cut. Nothing enforced that
+# last step and nothing reported its absence — 0.2.0 reached npm by
+# `workflow_dispatch` with no tag and no Release behind it, and #37 sat merged
+# and unpublished afterwards. That is the failure this replaces.
+#
+# The file name is load-bearing. npm Trusted Publishing binds the publisher to
+# this repository *and this workflow path*, so renaming the file revokes the
+# credential until the trusted publisher is reconfigured on npm (#27).
 on:
-  release:
-    types: [published]
+  push:
+    branches: [main]
+  # Manual recovery only: re-runs the publish for a version that is merged and
+  # versioned but not on the registry. `changeset publish` is idempotent, so
+  # running it against an already-published version is a no-op. This is not the
+  # way to cut a release — merging the version pull request is.
   workflow_dispatch:
 
 permissions:
-  # id-token: write is what npm Trusted Publishing (OIDC) exchanges for a
-  # short-lived credential. There is no NPM_TOKEN in this repository.
-  contents: read
+  # contents: write      -> push the version branch, create the tag and Release
+  # pull-requests: write -> open and update the version pull request
+  # id-token: write      -> npm Trusted Publishing (OIDC). There is no NPM_TOKEN.
+  contents: write
+  pull-requests: write
   id-token: write
 
+# Two pushes to main must never race on the version pull request or the tag.
+concurrency:
+  group: release
+  cancel-in-progress: false
+
 jobs:
-  publish:
-    name: Publish @heroiclands/hugo-theme
+  release:
+    name: Version and publish @heroiclands/hugo-theme
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
+        with:
+          # `changeset version` reads the history to date the entries, and the
+          # publish step tags it. A shallow clone has neither.
+          fetch-depth: 0
+
       - uses: actions/setup-node@v7
         with:
           node-version: 24
@@ -28,19 +64,21 @@ jobs:
 
       - run: npm ci
 
-      # Guard the release path with the same check `main` gets, so a
-      # tag cut from a red commit cannot publish. The theme has no test
-      # suite and nothing to compile — it ships Hugo templates — so this
-      # is the whole of its gate.
+      # Guard the release path with the same check `main` gets, so a red commit
+      # cannot reach the registry. The theme has no test suite and nothing to
+      # compile — it ships Hugo templates — so this is the whole of its gate.
       - run: npm run lint
 
-      # The package is layouts, not code: what can silently go wrong is
-      # shipping a tarball that is missing one. Publishing a theme whose
-      # `layouts/` never arrived would fail on the consuming site, not
-      # here, so it is checked before the publish rather than after.
+      # The package is layouts, not code: what can silently go wrong is shipping
+      # a tarball that is missing one. Publishing a theme whose `layouts/` never
+      # arrived would fail on the consuming site, not here, so it is checked
+      # before the publish rather than after.
       - name: The tarball carries the theme
         run: |
           npm pack --dry-run --json > /tmp/pack.json
+          # SC2016: the `${…}` below is a JavaScript template literal, and the
+          # single quotes are what keep the shell out of it. That is the point.
+          # shellcheck disable=SC2016
           node -e '
             const [p] = require("/tmp/pack.json");
             const files = p.files.map((f) => f.path);
@@ -58,16 +96,51 @@ jobs:
           '
 
       # OIDC Trusted Publishing needs npm >= 11.5; the runner ships older.
+      # `changeset publish` shells out to this npm, so it must be upgraded
+      # before the action runs, not inside it.
       - name: Upgrade npm for OIDC
         run: npm install -g npm@latest
 
-      # Idempotent: re-running the workflow on an already-published
-      # version is a no-op rather than an error.
-      - name: Publish if the version is new
+      # With changesets pending: opens or updates the version pull request and
+      # stops. With none pending — the state right after that pull request
+      # merges — runs `changeset publish`, which publishes the package if its
+      # version is not yet on the registry, tags it, and (because
+      # `create-github-releases` defaults to true) creates the GitHub Release
+      # from its CHANGELOG.md section. Both halves are no-ops when there is
+      # nothing to do, so an ordinary push to `main` releases nothing.
+      - name: Version, or publish
+        id: changesets
+        uses: changesets/action@v2
+        with:
+          # The repository's own script, not a second spelling of it.
+          # `changeset version` rewrites package.json and CHANGELOG.md but never
+          # the lockfile, so `package-lock.json`'s root `version` would keep the
+          # previous release's number; the script refreshes it, so the two agree
+          # by construction rather than by someone noticing.
+          #
+          # It must stay ONE command. This input is tokenized and exec'd, never
+          # handed to a shell, so a `&&` chain written here is read as arguments
+          # to the first command — `changeset` would receive
+          # `--package-lock-only` and reject it. That broke every release in
+          # `@heroiclands/content-build` (content-build#74); an npm script is the
+          # seam that does get a shell.
+          version-script: npm run changeset:version
+          publish-script: npx changeset publish
+          commit-message: "chore(release): version packages"
+          pr-title: "chore(release): version packages"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      # Report what reached the registry. `npm view <pkg> version` lags a
+      # successful publish by up to a minute or so, which reads as a failed
+      # release to anyone checking; `dist-tags` is correct immediately.
+      - name: Confirm the published version
+        if: steps.changesets.outputs.published == 'true'
         run: |
           VERSION=$(node -p "require('./package.json').version")
-          if npm view "@heroiclands/hugo-theme@$VERSION" version >/dev/null 2>&1; then
-              echo "@heroiclands/hugo-theme@$VERSION already published — skipping."
-          else
-              npm publish
-          fi
+          echo "Published @heroiclands/hugo-theme@$VERSION"
+          npm view @heroiclands/hugo-theme dist-tags --json
+          echo "Note: 'npm view @heroiclands/hugo-theme version' may report the"
+          echo "previous version for up to a minute. dist-tags above is authoritative."
+          echo "Consumers pinned to a previous 0.x minor will NOT see this release:"
+          echo "a caret does not cross a minor on 0.x. See CONTRIBUTING.md#releasing."
