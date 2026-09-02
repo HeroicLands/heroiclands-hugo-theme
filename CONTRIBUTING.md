@@ -38,6 +38,12 @@ request, squash-merged.
    this; anything else gets an issue first, so you have its number for the branch.
 2. **Branch off current `main`**, named `<type>/<issue_#>_<short-kebab-summary>` —
    e.g. `bug/4_polity-peoples-links`. Issue-free housekeeping is `chore/<slug>`.
+
+   **Git refuses a commit on `main`.** Hooks in `.githooks/` — `pre-commit`
+   and `pre-merge-commit` — decline it, so the mistake surfaces before the
+   commit exists rather than at push time. `npm install` activates them. To
+   commit on `main` anyway, `git commit --no-verify`; to opt this checkout out
+   entirely, `git config hooks.allowCommitOnMain true`.
 3. **Make the change**, keeping it small and focused — one feature, one fix, or one
    documentation improvement per pull request.
 4. **Verify it against a real consumer.** The theme does not build on its own; it
