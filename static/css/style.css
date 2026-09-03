@@ -28,6 +28,13 @@
      red the Foundry system uses reaches only ~2.5:1 here. */
   --unresolved-link: #ff8a80;
 
+  /* A link whose target exists but is not written yet. Contrast-checked
+     against the same three surfaces: 10.0:1 on --bg, 9.3:1 on --bg-card,
+     8.1:1 on --surface. Deliberately a different hue and a different
+     underline from --unresolved-link: the two say different things, and a
+     reader has to be able to tell them apart. */
+  --draft-link: #f2b950;
+
   --font-display:  'Cinzel', 'Georgia', serif;
   --font-body:     'Lora', 'Georgia', serif;
   --font-mono:     'JetBrains Mono', monospace;
@@ -1131,6 +1138,30 @@ a.tag:hover {
   font-weight: 700;
   color: var(--unresolved-link);
   text-decoration: underline dotted currentcolor;
+  text-underline-offset: 0.15em;
+  cursor: help;
+}
+
+/* ---- Draft link ----
+
+   A wikilink whose target exists but is not written yet. The content builds
+   wrap the resolved link in this class and leave the link itself alone, so it
+   still goes where it says; without a rule here it arrives styled as body text
+   and the marking communicates nothing.
+
+   Deliberately not the unresolved marking. An unresolved link's target does
+   not exist; a draft link's does and is simply unwritten, so the two must be
+   tellable apart. This keeps the link's normal weight — it is a real link —
+   and marks it in amber with a dashed underline, against the unresolved
+   marker's bold red and dotted one. Not signalled by hue alone, for the same
+   reason, and `cursor: help` hints at the title.
+
+   Single-mode dark, deliberately, as above: this theme sets no color-scheme,
+   so a light-dark() value would resolve to its light half. */
+
+.sohl-draft-link {
+  color: var(--draft-link);
+  text-decoration: underline dashed currentcolor;
   text-underline-offset: 0.15em;
   cursor: help;
 }
