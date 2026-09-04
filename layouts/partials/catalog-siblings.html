@@ -1,0 +1,55 @@
+{{- /*
+  The pages of a section that share one catalog key — the sibling set a
+  prev/next walk should stay inside (issue #48).
+
+  Narrowing is conditional, and the condition is the point. A section that
+  holds a single catalog needs no narrowing: `.PrevInSection` already walks
+  exactly that catalog, and reproducing it here would only change the answer
+  where front matter is uneven — a page declaring no catalog would drop out of
+  its neighbours' walk for no reader-visible reason. So this partial reports
+  whether the section is **mixed**, and only a mixed section gets a narrowed
+  set. A site whose pages still sit in catalog-named directories is therefore
+  untouched; only a flat mount, where package-build#204 merged every catalog
+  into one section, sees any change.
+
+  Pages declaring no catalog at all are neither siblings nor evidence of
+  mixing: they are prose the emitter has not classified, and they are why the
+  mixed test asks whether some *other* catalog is present rather than whether
+  every page matches this one.
+
+  Returns a dict:
+    mixed — true when the section holds more than one catalog.
+    pages — the section's regular pages carrying `key`, in section order.
+
+  Usage — cache on the section and the key, so the scan runs once per
+  (section, catalog) pair rather than once per page:
+
+    {{ $set := partialCached "catalog-siblings.html"
+         (dict "section" $section "key" $key) $section.Path $key }}
+
+  Params:
+    section — the section page whose regular pages are the candidates.
+    key     — the catalog key to collect (see `catalog-key.html`).
+*/ -}}
+{{- $key := .key -}}
+{{- $pages := slice -}}
+{{- $mixed := false -}}
+{{- with .section -}}
+  {{- range .RegularPages -}}
+    {{- /* The catalog key, inlined rather than delegated to
+           `catalog-key.html`: this runs once per page of the section, and a
+           partial call per candidate is the difference between a cheap scan
+           and a slow one. The two must agree — keep them in step. */ -}}
+    {{- $type := .Params.type | default "" -}}
+    {{- $pageKey := $type -}}
+    {{- if eq $type "doc" -}}
+      {{- $pageKey = .Params.subType | default (.Params.category | default "") -}}
+    {{- end -}}
+    {{- if eq $pageKey $key -}}
+      {{- $pages = $pages | append . -}}
+    {{- else if ne $pageKey "" -}}
+      {{- $mixed = true -}}
+    {{- end -}}
+  {{- end -}}
+{{- end -}}
+{{- return dict "mixed" $mixed "pages" $pages -}}

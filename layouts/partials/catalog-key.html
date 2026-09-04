@@ -1,0 +1,36 @@
+{{- /*
+  Resolve the page's **catalog key** — the name of the body of content it
+  belongs to, as the page itself declares it.
+
+  A content note used to be findable by where it sat: a page in `affliction/`
+  was an affliction, and `.CurrentSection` was both its catalog and its
+  address. `@heroiclands/package-build` (package-build#204) emits every page
+  flat under the site's content mount, so a consumer's whole catalog is one
+  Hugo section and directory membership no longer says anything. What still
+  distinguishes one catalog from another is the front matter the note carries,
+  and this partial is the one place that reads it — so a caller asking "which
+  catalog is this page in?" and a caller asking "which pages share it?" cannot
+  drift apart on the answer (issues #47, #48, #49).
+
+  Resolution:
+    - `type` is the key for structured content, whose type *is* its catalog:
+      `affliction`, `skill`, `weapongear`, `lore`, `place`.
+    - `doc` is not a catalog — it says a page is prose, not which prose. Its
+      genre is the key instead: `subType` (what package-build compiles from a
+      content note's classification) or, failing that, `category` (what a tree
+      of documentation mounted from a repository directory carries). The two
+      are alternate spellings of the same thing, never both.
+    - A page with no `type` has no catalog and returns "".
+
+  Usage:
+    {{ $key := partial "catalog-key.html" . }}
+
+  Context: the page. Passed directly rather than in a dict — there is one
+  input and it is always a page.
+*/ -}}
+{{- $type := .Params.type | default "" -}}
+{{- $key := $type -}}
+{{- if eq $type "doc" -}}
+  {{- $key = .Params.subType | default (.Params.category | default "") -}}
+{{- end -}}
+{{- return $key -}}

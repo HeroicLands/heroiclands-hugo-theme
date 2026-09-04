@@ -1,33 +1,59 @@
 {{- /*
   Breadcrumbs partial.
 
-  Renders `Home > {section label} > {name}` using the page's type and
-  package frontmatter.
+  Renders `Home > {section label} > {name}` using the page's catalog key (see
+  `catalog-key.html`) and package frontmatter.
 
   Behavior:
     - Home page: not rendered.
-    - Collection section landings (type == "doc", category == "collection",
-      URL == /{pkg}/{slug}/) and Hugo's auto-generated section indexes:
+    - Section landings — a collection landing (type == "doc", catalog key ==
+      "collection"), a landing that resolves to itself as its own catalog, and
+      Hugo's auto-generated section indexes:
         Home > {Title}
       since the page itself *is* the section.
-    - Package-driven leaf content (type == "doc" OR any type that is
-      package-routed by the exporter):
-        Middle crumb labelled from .Params.package and either
-        .Params.category (for doc) or the type itself (for everything
-        else): $packageLabels[package] + " " + titleCase(middle). Keep
-        $packageLabels in sync with the packages actually used. The link is
-        the page's own section (.CurrentSection), so it is correct whatever
-        path the site serves that package under.
+    - Package-driven leaf content (any page whose front matter names a
+      catalog):
+        Middle crumb labelled `$packageLabels[package] + " " +
+        titleCase(catalog key)`; keep $packageLabels in sync with the packages
+        actually used. A page carrying no `package` — a documentation tree
+        mounted from a repository directory — is labelled from the catalog
+        section's own title instead, so it gets a linked crumb rather than its
+        bare type. The link is resolved to the catalog's own section landing;
+        see "Where the address comes from" below.
     - Compound types under /hm3/ ({system}-{kind}, e.g. hm3-user-guide)
       get a curated label and link from $compoundLabels.
     - Pages with no type declared (e.g., blog/project landings, auto-
       generated section indexes):
         Home > {Title}
+
+  Where the address comes from (issue #47). Two earlier forms of this crumb
+  both broke, in opposite directions, and the fix is neither of them:
+
+    - Composing `/{package}/{middle}/` assumed the package occupies a path
+      segment of the site serving it. True only of a site publishing several:
+      on a knowledgebase serving one package at its root it pointed at a page
+      that does not exist, and on a package publishing its own subtree it
+      doubled the prefix.
+    - Taking `.CurrentSection` assumed the page lives in a directory named for
+      its section. `@heroiclands/package-build` (package-build#204) emits every
+      content page flat under the content mount, so `.CurrentSection` is the
+      mount itself and the crumb linked the knowledgebase landing while still
+      labelling itself with the section.
+
+  So the address is neither composed nor inherited: it is **resolved**, against
+  a page the site actually publishes, which then supplies its own
+  RelPermalink — no path is ever written down here. Resolution asks, in order,
+  which section landing *declares* it lists this page (`catalog-landing.html`,
+  the same `listType`/`listSubType` contract `_default/list.html` reads from
+  the other end), and then which section is *named* for the page's catalog.
+  A site that publishes no such landing has no section address to give, and the
+  crumb falls back to `.CurrentSection` — the enclosing mount, which is at
+  least a page that exists.
 */ -}}
 {{- if .IsHome -}}{{- return -}}{{- end -}}
 {{- $type := .Params.type | default "" -}}
-{{- $category := .Params.category | default "" -}}
-{{- $isCollection := and (eq $type "doc") (eq $category "collection") -}}
+{{- $key := partial "catalog-key.html" . -}}
+{{- $isCollection := and (eq $type "doc") (eq $key "collection") -}}
 
 {{- /* Curated labels for compound types under /hm3/ */ -}}
 {{- $compoundLabels := dict
@@ -52,44 +78,93 @@
     <li><a href="{{ .Site.Home.RelPermalink }}">Home</a></li>
     {{- if and (ne $type "") (not $isCollection) -}}
       {{- $section := "" -}}
+      {{- $isOwnSection := false -}}
       {{- $compound := index $compoundLabels $type -}}
       {{- if $compound -}}
         {{- $section = $compound -}}
-      {{- else -}}
-        {{- /* Package-driven: middle = category for doc, otherwise the type. */ -}}
-        {{- $pkg := .Params.package | default "" -}}
-        {{- $middle := "" -}}
-        {{- if eq $type "doc" -}}
-          {{- $middle = $category -}}
-        {{- else -}}
-          {{- $middle = $type -}}
-        {{- end -}}
-        {{- if and (ne $pkg "") (ne $middle "") -}}
-          {{- $pkgLabel := index $packageLabels $pkg | default (title $pkg) -}}
-          {{- $middleLabel := replace $middle "-" " " | title -}}
-          {{- /*
-            The crumb points at the section this page sits in, and Hugo already
-            knows where that is. Composing the address instead — as
-            /{package}/{section}/ — assumes the package occupies a path segment
-            of the site serving it, which is true only of a site that publishes
-            several: on a knowledgebase serving one package at its root the
-            crumb pointed at a page that does not exist, and on a package that
-            publishes its own subtree it doubled the prefix. The label is still
-            composed, since it names the package for a reader who may be
-            arriving from another one.
-          */ -}}
-          {{- $sectionURL := printf "%s/%s/" $pkg $middle | relURL -}}
-          {{- with .CurrentSection -}}
-            {{- if .RelPermalink -}}{{- $sectionURL = .RelPermalink -}}{{- end -}}
+      {{- else if $key -}}
+        {{- /*
+          1. The landing that declares it lists this page. The authoritative
+             answer, and the one this repository already settled on from the
+             listing side (issue #50) — see `catalog-landing.html`.
+        */ -}}
+        {{- $sub := .Params.subType | default "" -}}
+        {{- $catalogSection := partialCached "catalog-landing.html" (dict "type" .Type "subType" $sub) .Type $sub -}}
+
+        {{- /*
+          2. Failing that, a section *named* for the catalog — the page's own
+             section or an ancestor (a page filed in a catalog-named directory),
+             or a section sitting under one of them (a flat page whose catalog
+             landing is its sibling).
+
+             Transitional, and a weaker answer than 1: a section name is a
+             published URL its owner chose, so it need not spell the catalog the
+             way the content does — `/kb/user-guide/` lists pages whose genre is
+             `userguide`, and no name match can bridge that. It is here because
+             it is the shape every consumer has today, and it retires itself as
+             builds start emitting `listType`.
+        */ -}}
+        {{- if not $catalogSection -}}
+          {{- $candidates := slice -}}
+          {{- with .CurrentSection -}}{{- $candidates = $candidates | append . -}}{{- end -}}
+          {{- range .Ancestors -}}{{- $candidates = $candidates | append . -}}{{- end -}}
+          {{- range $candidates -}}
+            {{- if and (not $catalogSection) (eq (path.Base .Path) $key) -}}
+              {{- $catalogSection = . -}}
+            {{- end -}}
           {{- end -}}
-          {{- $section = dict
-              "label" (printf "%s %s" $pkgLabel $middleLabel)
-              "url"   $sectionURL -}}
+          {{- /* Checked against `Kind` so a regular page that happens to share
+                 the catalog's name can never stand in for its listing. */ -}}
+          {{- if not $catalogSection -}}
+            {{- range $candidates -}}
+              {{- if not $catalogSection -}}
+                {{- with site.GetPage (path.Join .Path $key) -}}
+                  {{- if eq .Kind "section" -}}{{- $catalogSection = . -}}{{- end -}}
+                {{- end -}}
+              {{- end -}}
+            {{- end -}}
+          {{- end -}}
+        {{- end -}}
+
+        {{- /*
+          A catalog's own landing resolves to itself, and `Home > Afflictions >
+          Afflictions` is not a trail. The page *is* the section, so it renders
+          the same `Home > {Title}` a collection landing does — which means
+          suppressing the middle crumb outright rather than leaving it to the
+          bare-type fallback below, which would put the unlinked "doc" back.
+        */ -}}
+        {{- if and $catalogSection (eq $catalogSection.Path .Path) -}}
+          {{- $isOwnSection = true -}}
+          {{- $catalogSection = "" -}}
+        {{- end -}}
+
+        {{- $sectionURL := "" -}}
+        {{- with $catalogSection -}}{{- $sectionURL = .RelPermalink -}}{{- end -}}
+        {{- if not $sectionURL -}}
+          {{- with .CurrentSection -}}{{- $sectionURL = .RelPermalink -}}{{- end -}}
+        {{- end -}}
+
+        {{- /*
+          The label names the package for a reader who may be arriving from
+          another one, so it is composed rather than taken from the section's
+          own title. A page with no package has no such composition available
+          and borrows the section's title instead.
+        */ -}}
+        {{- $label := "" -}}
+        {{- with .Params.package -}}
+          {{- $pkgLabel := index $packageLabels . | default (title .) -}}
+          {{- $label = printf "%s %s" $pkgLabel (replace $key "-" " " | title) -}}
+        {{- else -}}
+          {{- with $catalogSection -}}{{- $label = .LinkTitle -}}{{- end -}}
+        {{- end -}}
+
+        {{- if and (not $isOwnSection) (ne $label "") (ne $sectionURL "") -}}
+          {{- $section = dict "label" $label "url" $sectionURL -}}
         {{- end -}}
       {{- end -}}
       {{- if $section -}}
         <li><a href="{{ $section.url }}">{{ $section.label }}</a></li>
-      {{- else -}}
+      {{- else if not $isOwnSection -}}
         <li>{{ $type }}</li>
       {{- end -}}
     {{- end -}}
