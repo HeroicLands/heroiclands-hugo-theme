@@ -1,6 +1,10 @@
 {{- /*
   Default list layout: hero + breadcrumbs, the authored body when there is one,
-  and an auto-list of child pages.
+  and an auto-list of the section's members.
+
+  A member is normally a child page (`.Pages`). A section whose pages are
+  emitted flat has none, and says what it lists instead — see "WHAT THIS SECTION
+  LISTS" below, and "A section landing" in README.md.
 
   Content rows render through the `catalog-rows` partial as
   "Name (shortcode) + description". The shortcode and description are each
@@ -41,6 +45,66 @@
          (eq .Kind "section")
     -}}
     {{- /*
+      WHAT THIS SECTION LISTS.
+
+      Normally its own child pages: `.Pages` is what Hugo finds inside the
+      section's directory, and for most of this theme's history that was also
+      where a content page lived.
+
+      `@heroiclands/package-build` stopped filing them there. Every content page
+      is now emitted FLAT under the site's content mount — `<mount>/being-orc.md`,
+      stating its own `url:` — because a section appears in no address, so the
+      directory only ever existed to satisfy Hugo's idea of what a section is.
+      No published address moved; only the paths did. A section directory then
+      holds nothing but its own generated `_index.md`, `.Pages` is empty, and
+      every declared section landing rendered "Nothing here yet." (issue #50).
+
+      A theme cannot infer what is missing. The relationship between a section
+      and its members survives only in the consuming package's build
+      configuration, and it CANNOT be recovered from the section's name: a
+      section name is a published URL its owner chose, and the two are
+      deliberately free to differ — one knowledgebase publishes `/kb/user-guide/`
+      for pages whose genre is spelled `userguide`, because a genre is an address
+      segment and a segment carries no hyphen. Keying a filter on the directory
+      name would re-introduce, here, exactly the coupling flat emission removed.
+
+      So the SECTION SAYS WHAT IT LISTS, in two front-matter keys the build
+      writes onto the generated landing from that configuration:
+
+        listType     A content type — `being`, `weapongear`, `doc`. Matched
+                     against the page's `Type`, which is the `type:` the build
+                     writes on every content page.
+        listSubType  Optional, and only ever alongside `listType`. Matched
+                     against the page's `subType`. Needed because one type can
+                     hold several genres: `rules`, `userguide` and `reference`
+                     are all `type: doc`, and a documentation tree mounted from
+                     a repository directory is `type: doc` carrying no `subType`
+                     at all — so `listType` alone would sweep all four together
+                     into whichever section asked first.
+
+      Deliberately NOT Hugo's own `type:`. On an `_index.md` that key selects the
+      template, so `type: doc` on a section landing would send it to
+      `layouts/doc/list.html` instead of this file.
+
+      The query is site-wide, which is the whole point: it asks what a page IS,
+      not where its file sits, so it is indifferent to flat emission. It is the
+      same query a consumer's own catalog layouts already run, which is why those
+      layouts were never affected by the change.
+
+      GATED ON AN EMPTY `.Pages`, so this is a fallback and not a replacement. A
+      consumer still filing pages into section directories has a populated
+      `.Pages` and never reaches it; a landing that declares no `listType`
+      renders exactly as it did before, empty message included. Nothing here
+      changes any site until its build starts emitting the keys.
+    */ -}}
+    {{- $members := .Pages -}}
+    {{- if and (eq .Kind "section") (eq (len $members) 0) .Params.listType -}}
+      {{- $members = where site.RegularPages "Type" .Params.listType -}}
+      {{- with .Params.listSubType -}}
+        {{- $members = where $members "Params.subtype" . -}}
+      {{- end -}}
+    {{- end -}}
+    {{- /*
       Pages reachable from the authored body, matched on RelPermalink so the
       comparison survives aliases and wikilink resolution.
 
@@ -64,7 +128,7 @@
       it. Twelve passes is far past the depth of any corpus here (the rules need
       four), and the `$growing` guard makes the surplus passes free.
     */ -}}
-    {{- $unlisted := .Pages -}}
+    {{- $unlisted := $members -}}
     {{- if and (eq .Kind "section") .Content -}}
       {{- $haystack := .Content -}}
       {{- $reached := slice -}}
@@ -72,7 +136,7 @@
       {{- range seq 12 -}}
         {{- if $growing -}}
           {{- $growing = false -}}
-          {{- range $.Pages -}}
+          {{- range $members -}}
             {{- if not (in $reached .RelPermalink) -}}
               {{- if in $haystack (printf "href=\"%s" .RelPermalink) -}}
                 {{- $reached = $reached | append .RelPermalink -}}
@@ -83,7 +147,7 @@
           {{- end -}}
         {{- end -}}
       {{- end -}}
-      {{- $unlisted = where .Pages "RelPermalink" "not in" $reached -}}
+      {{- $unlisted = where $members "RelPermalink" "not in" $reached -}}
     {{- end -}}
     {{- /*
       Label the leftovers only when a curated body precedes them. With

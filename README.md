@@ -367,6 +367,66 @@ and a landing with no groups renders exactly the markup it did before.
   `.landing-notice` and the rest live in `static/css/style.css`, expressed in
   the palette tokens. A landing needs no CSS of its own, and should ship none.
 
+## A section landing
+
+A section's landing page — `layouts/_default/list.html` — opens with the hero
+and any authored body, then lists the section's members. Normally those are its
+child pages, which is what `.Pages` gives.
+
+**A build may not file them there.** `@heroiclands/package-build` emits every
+content page *flat* under the site's content mount — `<mount>/being-orc.md`,
+stating its own `url:` — because a section appears in no address, so the
+directory only ever existed to satisfy Hugo's idea of what a section is. No
+published address moves; only the paths do. The section directory then holds
+nothing but its own `_index.md`, and `.Pages` is empty.
+
+The theme cannot infer what is missing, and **cannot key it on the section's
+name**: a section name is a published URL its owner chose, and the two are
+deliberately free to differ — one knowledgebase publishes `/kb/user-guide/` for
+pages whose genre is spelled `userguide`, because a genre is an address segment
+and a segment carries no hyphen. So the section says what it lists:
+
+```yaml
+---
+# content/being/_index.md — every page whose type is `being`
+title: Beings
+banner: banners/being.webp
+listType: being
+---
+```
+
+```yaml
+---
+# content/rules/_index.md — one genre of a shared type
+title: Rules
+listType: doc
+listSubType: rules
+---
+```
+
+- **`listType`** is matched against the page's `Type`, which is the `type:` a
+  build writes on every content page.
+- **`listSubType`** is optional, and meaningful only alongside `listType`. It is
+  matched against the page's `subType`. One type can hold several genres —
+  `rules`, `userguide` and `reference` are all `type: doc`, and a documentation
+  tree mounted from a repository directory is `type: doc` carrying no `subType`
+  at all — so `listType` alone would sweep all four together into whichever
+  section asked first.
+- The query is **site-wide**. That is the point: it asks what a page *is*, not
+  where its file sits, so it is indifferent to how the build lays the tree out.
+  It is the same query a consumer's own catalog layouts already run, which is why
+  those layouts were never affected by flat emission.
+- Deliberately **not** Hugo's own `type:`. On an `_index.md` that key selects the
+  template, so `type: doc` on a section landing would send it to
+  `layouts/doc/list.html` instead of the default list layout.
+- **It is a fallback, not a replacement.** The keys are read only when `.Pages`
+  is empty, so a consumer that still files pages into section directories is
+  unaffected, and a landing that declares nothing renders exactly as before —
+  "Nothing here yet." included. Ordering is unchanged either way: both
+  collections carry Hugo's default page order.
+- The gap-filler applies as usual. A landing with an authored body lists only
+  the members that body does not reach, under "Orphaned Pages".
+
 ## The hero banner
 
 Nearly every page in this theme opens with a hero band, and
