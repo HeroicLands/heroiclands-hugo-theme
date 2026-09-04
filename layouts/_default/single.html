@@ -65,9 +65,53 @@
 
     {{ partial "related.html" . }}
 
+    {{- /*
+      Prev/next walk the page's own catalog, not its Hugo section (issue #48).
+      `.PrevInSection` / `.NextInSection` mean "the neighbouring page in this
+      directory", which was the same thing only while a page lived in a
+      directory named for its catalog. `@heroiclands/package-build`
+      (package-build#204) emits every content page flat under the content
+      mount, so a consumer's whole catalog became one section and these two
+      links walked every page of every type — reading through the afflictions
+      silently left them.
+
+      So where a section holds more than one catalog, the sibling set is
+      narrowed to the pages sharing this page's catalog key (see
+      `catalog-key.html` and `catalog-siblings.html`). A section holding a
+      single catalog is left alone, because `.PrevInSection` already walks
+      exactly that catalog there — which is what makes this a no-op for a site
+      whose pages still sit in catalog-named directories. A page declaring no
+      catalog keeps the section-scoped result.
+
+      Ordering follows Hugo's: in a page collection `.PrevInSection` is the
+      *following* entry and `.NextInSection` the preceding one, so the
+      neighbours are taken at index+1 and index-1 respectively.
+    */ -}}
+    {{- $prev := .PrevInSection -}}
+    {{- $next := .NextInSection -}}
+    {{- $key := partial "catalog-key.html" . -}}
+    {{- $siblings := slice -}}
+    {{- with .CurrentSection -}}
+      {{- if $key -}}
+        {{- $set := partialCached "catalog-siblings.html" (dict "section" . "key" $key) .Path $key -}}
+        {{- if $set.mixed -}}{{- $siblings = $set.pages -}}{{- end -}}
+      {{- end -}}
+    {{- end -}}
+    {{- if $siblings -}}
+      {{- $index := -1 -}}
+      {{- range $i, $p := $siblings -}}
+        {{- if eq $p.Path $.Path -}}{{- $index = $i -}}{{- end -}}
+      {{- end -}}
+      {{- if ge $index 0 -}}
+        {{- $prev = "" -}}
+        {{- $next = "" -}}
+        {{- if lt (add $index 1) (len $siblings) -}}{{- $prev = index $siblings (add $index 1) -}}{{- end -}}
+        {{- if gt $index 0 -}}{{- $next = index $siblings (sub $index 1) -}}{{- end -}}
+      {{- end -}}
+    {{- end -}}
     <nav class="single-nav">
-      {{ with .PrevInSection }}<a href="{{ .Permalink }}" class="nav-prev">&larr; {{ .Title }}</a>{{ end }}
-      {{ with .NextInSection }}<a href="{{ .Permalink }}" class="nav-next">{{ .Title }} &rarr;</a>{{ end }}
+      {{ with $prev }}<a href="{{ .Permalink }}" class="nav-prev">&larr; {{ .Title }}</a>{{ end }}
+      {{ with $next }}<a href="{{ .Permalink }}" class="nav-next">{{ .Title }} &rarr;</a>{{ end }}
     </nav>
   </div>
 

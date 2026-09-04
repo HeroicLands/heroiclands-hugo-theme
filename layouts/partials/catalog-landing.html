@@ -1,0 +1,57 @@
+{{- /*
+  The section landing that lists a page — resolved by what the page *is*, not
+  by where its file sits.
+
+  This is the same relationship `_default/list.html` resolves from the other
+  end (issue #50): a generated landing states its membership in two
+  front-matter keys the consuming package's build writes onto it, and the
+  query is site-wide so it is indifferent to how the build lays the tree out.
+
+    listType     A content type — `being`, `weapongear`, `doc`. Matched
+                 against the page's `Type`.
+    listSubType  Optional, and only ever alongside `listType`. Matched against
+                 the page's `subType`. One type can hold several genres:
+                 `rules`, `userguide` and `reference` are all `type: doc`, so
+                 `listType` alone would sweep them together. A landing that
+                 declares no `listSubType` lists the whole type, and is used
+                 only when nothing matches the genre exactly.
+
+  Nothing here can be recovered from a section's name, which is why it is not
+  attempted: a section name is a published URL its owner chose, and the two are
+  deliberately free to differ — one knowledgebase publishes `/kb/user-guide/`
+  for pages whose genre is spelled `userguide`. Callers that fall back to a
+  name match must say so, and treat it as transitional.
+
+  Returns the landing page, or "" when no section declares itself the home of
+  this page's catalog.
+
+  Usage — cache on the pair being resolved, so the site-wide scan runs once per
+  catalog rather than once per page:
+
+    {{ $landing := partialCached "catalog-landing.html"
+         (dict "type" .Type "subType" $sub) .Type $sub }}
+
+  Params:
+    type     — the page's content type.
+    subType  — the page's genre within that type; "" when it has none.
+*/ -}}
+{{- $type := .type | default "" -}}
+{{- $subType := .subType | default "" -}}
+{{- $landing := "" -}}
+{{- if $type -}}
+  {{- $candidates := where (where site.Pages "Kind" "section") "Params.listtype" $type -}}
+  {{- /* An exact genre match wins; a whole-type landing is the fallback. */ -}}
+  {{- range $candidates -}}
+    {{- if and (not $landing) $subType (eq (.Params.listSubType | default "") $subType) -}}
+      {{- $landing = . -}}
+    {{- end -}}
+  {{- end -}}
+  {{- if not $landing -}}
+    {{- range $candidates -}}
+      {{- if and (not $landing) (eq (.Params.listSubType | default "") "") -}}
+        {{- $landing = . -}}
+      {{- end -}}
+    {{- end -}}
+  {{- end -}}
+{{- end -}}
+{{- return $landing -}}
