@@ -54,19 +54,11 @@
   kilograms, and `frame` as a property in its own right. The unit conversions
   below are unchanged; only the path they read is.
 
-  **`traits:` is still read, underneath `data:`, and normalised to that one
-  shape.** Not for tolerance's sake: 2,533 notes across three repositories
-  carry the old block today, each repository converts on its own schedule, and
-  each pins this theme on a caret range inside `0.x` — so a release that read
-  only `data:` could be adopted by a tree that has not converted yet, and every
-  Profile row and the whole Appearance sentence would vanish from its pages in
-  silence, `with` on an absent param rendering nothing exactly as it correctly
-  does for a creature that has no description at all. Reading both makes the
-  order the four changes land in stop mattering. `data:` wins wherever a note
-  writes both, so a converted tree is never read through the old shape.
-
-  The fallback is transitional and is removed once no tree writes `traits:` —
-  tracked as the follow-up to #55.
+  #55 read the legacy `traits:` block underneath `data:` for one release, so
+  that the four repositories converting to the new shape could land in any
+  order without a published sidebar going blank in between. All five content
+  trees now carry zero `traits:` blocks, so that fallback has been removed
+  (#56) and this partial reads `data:` alone.
 */ -}}
 {{- $sohl       := hugo.Data.sohl -}}
 {{- $attrNames  := $sohl.attributes -}}
@@ -78,24 +70,7 @@
        and `index` on a nil map is a build error, not an empty section. */ -}}
 {{- $attrs      := dict -}}{{- with .Params.sohl }}{{- with .attributes }}{{ $attrs = . }}{{ end }}{{ end -}}
 {{- $skills     := dict -}}{{- with .Params.sohl }}{{- with .skills     }}{{ $skills = . }}{{ end }}{{ end -}}
-{{- /* The description, flattened to one shape from the two a tree may author.
-       `data:` is what the format declares and it wins; the legacy top-level
-       `traits:` block is read underneath it, normalised, so a tree that has
-       not been converted yet renders exactly as it does today. See the note
-       above — the fallback is removed once no tree writes `traits:`. */ -}}
-{{- $data       := dict -}}
-{{- with .Params.traits -}}
-  {{- $data = merge $data (dict
-        "gender"     .gender
-        "species"    .species
-        "age"        .age
-        "birthday"   .birthday
-        "appearance" .appearance) -}}
-  {{- with .height }}{{ $data = merge $data (dict "height" .m)     }}{{ end -}}
-  {{- with .weight }}{{ $data = merge $data (dict "weight" .kg)    }}{{ end -}}
-  {{- with .build  }}{{ $data = merge $data (dict "frame"  .frame) }}{{ end -}}
-{{- end -}}
-{{- with .Params.data }}{{ $data = merge $data . }}{{ end -}}
+{{- $data       := dict -}}{{- with .Params.data   }}{{ $data = . }}{{ end -}}
 {{- $social     := dict -}}{{- with .Params.social }}{{ $social = . }}{{ end -}}
 {{- $corpus     := "" -}}{{- with .Params.sohl }}{{- with .corpus }}{{ $corpus = . }}{{ end }}{{ end -}}
 {{- $birthsign  := "" -}}{{- with .Params.sohl }}{{ $birthsign = .birthsign }}{{ end -}}
