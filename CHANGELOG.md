@@ -1,5 +1,110 @@
 # @heroiclands/hugo-theme
 
+## 0.5.0
+
+### Minor Changes
+
+- 82d0a3e: The being sidebar reads its subject's description from `data:` (#55).
+  
+  A being's physical description — gender, age, birthday, height, weight, frame and
+  the `appearance.*` keys — was read out of a top-level `traits:` block. The content
+  format declares no such block. A note's type-specific facts live in the closed
+  `data:` container, and `being` declares every one of those keys there.
+  
+  The difference is not cosmetic. Top level is deliberately open: the format passes
+  unrecognised keys straight through to Hugo, so a misspelled `wieght` under
+  `traits:` arrived here as a theme parameter rather than as a finding, and none of
+  these fields was checked by anything. Under `data:` the same misspelling names the
+  note and suggests the key it was meant to be.
+  
+  Three of the reads changed shape as well as place. The old block nested its
+  measurements — `height: {m:}`, `weight: {kg:}`, `build: {frame:}` — where the
+  format declares `height` and `weight` as bare numbers, in metres and kilograms,
+  and `frame` as a property in its own right. The imperial conversions the
+  Appearance sentence performs are unchanged; only the path they read is.
+  
+  **`traits:` is still read, underneath `data:`, and normalised to that one shape.**
+  2,533 notes across three repositories carry the old block today — 2,512 in
+  `harn-ensemble`, 17 in `sohl-kethira-basic`, 4 in `Song-of-Heroic-Lands-FoundryVTT`
+  — each converts on its own schedule under HeroicLands/package-build#128, and each
+  pins this theme on a caret range inside `0.x`. A release that read only `data:`
+  could therefore be adopted by a tree that had not converted yet, and every Profile
+  row and the whole Appearance sentence would vanish from its pages in silence:
+  `with` on an absent parameter renders nothing, which is exactly what the sidebar
+  correctly does for a creature that has no description at all. Reading both makes
+  the order those changes land in stop mattering, and `data:` wins wherever a note
+  writes both, so a converted tree is never read through the old shape.
+  
+  The fallback is transitional and is removed once no tree writes `traits:`.
+- 83de0fb: A page's breadcrumb and its prev/next links follow the catalog it declares, not the
+  directory it sits in (#47, #48, #49).
+  
+  Both read a page's place in the site from `.CurrentSection`, which said what it
+  needed to say only while a page lived in a directory named for its catalog.
+  `@heroiclands/package-build` (package-build#204) emits every content page **flat**
+  under the content mount, so a consumer's whole catalog is one Hugo section — and
+  the two facts that were derived from directory membership stopped being facts:
+  
+  - The **middle crumb's href** became the mount. Every content page still labelled
+    itself with its section and linked the knowledgebase landing, losing the
+    one-click route back to its own listing — 1,478 pages of the SoHL knowledgebase.
+  - **Prev/next** became "anywhere in the knowledgebase". Reading through the
+    afflictions walked out of them into skills and traumas in title order; 1,506
+    links crossed a catalog boundary.
+  
+  **The address is resolved, not composed or inherited.** A new
+  `partials/catalog-landing.html` answers "which section landing lists this page?"
+  from the `listType` / `listSubType` front matter a generated landing already
+  carries — the same contract `_default/list.html` reads from the other end (#50), a
+  site-wide query that asks what a page _is_ rather than where its file sits.
+  Failing that it falls back to a section *named* for the page's catalog: the shape
+  every consumer has today, and a weaker answer, since a section name is a published
+  URL its owner chose and need not spell the catalog the way the content does
+  (`/kb/user-guide/` lists pages whose genre is `userguide`). That fallback retires
+  itself as builds start emitting the keys. Failing both, the crumb keeps today's
+  `.CurrentSection` — the enclosing mount, which is at least a page that exists.
+  
+  **Narrowing prev/next is conditional, and that is what keeps it a no-op.** A
+  section holding one catalog is left alone, because `.PrevInSection` already walks
+  exactly that catalog there. Only a section that actually mixes catalogs — a flat
+  mount — gets the narrowed sibling set. Verified against all three consumers: on
+  thalorna and heroiclands.org the rendered prev/next is byte-identical.
+  
+  **Doc pages get their crumb back** (#49). The middle crumb read `.Params.category`
+  for `type: doc`, but content notes compiled by package-build name their genre in
+  `subType`, so the crumb rendered an unlinked, unhelpful `doc` — 160 pages,
+  including every rules chapter, the user guide, and the developer documentation.
+  Both spellings are now read, `subType` first, since a documentation tree mounted
+  from a repository directory still carries `category`. A landing that resolves to
+  itself renders `Home > {Title}` rather than naming itself twice, and a page with no
+  `package` to compose a label from borrows the section's own title instead of
+  falling back to its bare type.
+  
+  The catalog key itself — `type`, or the genre for a `doc` — is factored into
+  `partials/catalog-key.html` so the crumb and the sibling walk cannot drift apart on
+  what catalog a page is in.
+
+### Patch Changes
+
+- dca40b1: The being sidebar reads `data:` alone (#56).
+  
+  #55 moved it onto the `data:` container the content format declares, and kept reading
+  the legacy top-level `traits:` block underneath — normalised to the same shape — for
+  one release. That fallback existed so the four repositories converting to the new
+  shape could land in any order without a published sidebar silently going blank in
+  between.
+  
+  All of them have landed, and **every content tree now carries zero `traits:` blocks**:
+  `harn-ensemble`, `sohl-thalorna`, `sohl-kethira-basic`,
+  `Song-of-Heroic-Lands-FoundryVTT` and `harn-adventures`. So the fallback is a second
+  way to say one thing, kept alive by nothing.
+  
+  Verified by rendering rather than by argument: the SoHL knowledgebase built with and
+  without the fallback is **byte-identical across all 1,785 pages, 95 of them being
+  pages**. The `data:` path is live in that output — `Basic_Folk` renders _"Age 20,
+  5′ 7″, 150 lbs, medium frame, brown eyes, brown hair, pale skin"_, with its Gender and
+  Born rows, all from `data:`.
+
 ## 0.4.0
 
 ### Minor Changes
