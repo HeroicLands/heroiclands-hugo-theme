@@ -3,56 +3,73 @@
 
   An affiliation is any organized body a character can belong to: a religion
   or church, a school of magic, a spirit tradition, or a secular guild, bank,
-  syndicate, house, or military unit. Which one it is comes from
-  `sohl.subType`; there is no separate "faith" kind of page, and a religion is
-  an affiliation and nothing more. The practices of its rites are a skill, and
-  the powers it grants are mystical abilities — both separate documents.
+  syndicate, house, or military unit. Which one it is comes from the
+  top-level `subType`; there is no separate "faith" kind of page, and a
+  religion is an affiliation and nothing more. The practices of its rites are
+  a skill, and the powers it grants are mystical abilities — both separate
+  documents.
 
   Fields read from frontmatter (all optional; rows silently skip when
   missing). The first two apply to every affiliation; the rest are meaningful
   only for a deity-facing one and are simply absent elsewhere.
 
-    name.full  — The body's name (falls back to the page title).
-    sohl.subType
-               — divine | arcane | spirit | social, rendered as a label.
-    deity      — The deity's name (e.g. "Ánubís").
-    epithet    — The deity's epithet (e.g. "The Keeper of Transitions").
-    domain     — Single-word or short phrase (e.g. "Decay").
-    symbol     — Prose description of the deity's iconographic symbol
-                 (e.g. "A jackal's head cradling a crescent moon").
-    img        — Per-body illustration (URL fragment or full URL). If
-                 present, takes precedence over `glyph` and renders as
-                 a full-color portrait at the top of the infobox
-                 without the limestone-tablet framing. Used by the
-                 Aurèldían and Asguardian religions which have custom art.
-    glyph      — Slug of a hieroglyphic name SVG; resolves to
-                 icons/<glyph>.svg on the site's asset host and
-                 renders inside a .glyph-tablet at the top of the card.
-                 Used when no `img` is provided (e.g. the Kemetían
-                 religion, which uses hieroglyphic name-glyphs rather
-                 than figural art).
-    pantheon   — Shortcode of the parent pantheon; rendered as a link when a
-                 page with that shortcode is found in the site.
+    name.full   — The body's name (falls back to the page title).
+    subType     — faithtradition | arcanetradition | spirittradition | …,
+                  the first three rendered as a label, the rest humanized.
+    data.lore   — The god is not a property of the affiliation; it is cited
+                  here as a `lore` note of subType `deity`, and the first
+                  one found is the row's value.
+    data.epithet — The deity's epithet (e.g. "The Keeper of Transitions").
+    data.symbol — Prose description of the deity's iconographic symbol
+                  (e.g. "A jackal's head cradling a crescent moon").
+    img         — Per-body illustration (URL fragment or full URL). If
+                  present, takes precedence over `glyph` and renders as
+                  a full-color portrait at the top of the infobox
+                  without the limestone-tablet framing. Used by the
+                  Aurèldían and Asguardian religions which have custom art.
+    glyph       — Slug of a hieroglyphic name SVG; resolves to
+                  icons/<glyph>.svg on the site's asset host and
+                  renders inside a .glyph-tablet at the top of the card.
+                  Used when no `img` is provided (e.g. the Kemetían
+                  religion, which uses hieroglyphic name-glyphs rather
+                  than figural art).
+    data.parents — The first entry is read as the parent pantheon's
+                  shortcode; rendered as a link when a page with that
+                  shortcode is found in the site.
 */ -}}
 
 {{- $ctx := . -}}
+{{- $data := dict -}}{{- with .Params.data }}{{ $data = . }}{{ end -}}
 {{- $name := "" -}}{{- with .Params.name.full }}{{ $name = . }}{{ end -}}
 {{- if not $name }}{{ $name = .Title }}{{ end -}}
-{{- $deity := .Params.deity -}}
-{{- $epithet := .Params.epithet -}}
-{{- $domain := .Params.domain -}}
-{{- $symbol := .Params.symbol -}}
+{{- $epithet := $data.epithet -}}
+{{- $symbol := $data.symbol -}}
 {{- $img := .Params.img -}}
 {{- $glyph := .Params.glyph -}}
-{{- $pantheonCode := .Params.pantheon -}}
+{{- /* The deity is a `lore` note cited from `data.lore`, not a property of
+       the affiliation — an affiliation can outlive belief in the god, and
+       one god may be venerated by several. A `lore` list mixes deities with
+       peoples, law and calendar, so it is narrowed to the ones resolving to
+       a `lore` page of subType `deity`. */ -}}
+{{- $deity := "" -}}
+{{- range $data.lore -}}
+  {{- if not $deity -}}
+    {{- $pg := first 1 (where (where (where $ctx.Site.RegularPages "Params.shortcode" .) "Params.type" "lore") "Params.subType" "deity") -}}
+    {{- with index $pg 0 }}{{ $deity = .Title }}{{ end -}}
+  {{- end -}}
+{{- end -}}
+{{- /* The parent pantheon is the first of `data.parents` — an affiliation
+       may name several parent bodies, but the pantheon is the one this
+       card shows. */ -}}
+{{- $pantheonCode := "" -}}
+{{- with $data.parents }}{{- if gt (len .) 0 }}{{ $pantheonCode = index . 0 }}{{ end }}{{ end -}}
 {{- $kind := "" -}}
-{{- with .Params.sohl }}{{- with .subType }}
+{{- with .Params.subType -}}
   {{- $kind = index (dict
-      "divine" "Religion"
-      "arcane" "School of Magic"
-      "spirit" "Spirit Tradition"
-      "social" "Secular Body") . | default (humanize . | title) -}}
-{{- end }}{{- end -}}
+      "faithtradition" "Religion"
+      "arcanetradition" "School of Magic"
+      "spirittradition" "Spirit Tradition") . | default (humanize . | title) -}}
+{{- end -}}
 
 {{- /* Resolve img URL — a fragment (e.g. "images/janus.webp") resolves
        against the consuming site's asset host, an absolute URL is used
@@ -67,7 +84,7 @@
        if the page isn't found. */ -}}
 {{- $pantheonPage := "" -}}
 {{- with $pantheonCode -}}
-  {{- $pg := first 1 (where $ctx.Site.RegularPages "Params.shortcode" .) -}}
+  {{- $pg := first 1 (where (where $ctx.Site.RegularPages "Params.shortcode" .) "Params.type" "affiliation") -}}
   {{- with index $pg 0 -}}{{ $pantheonPage = . }}{{- end -}}
 {{- end -}}
 
@@ -118,11 +135,6 @@
     {{- with $epithet }}
     <dt>Epithet</dt>
     <dd><em>{{ . }}</em></dd>
-    {{- end }}
-
-    {{- with $domain }}
-    <dt>Domain</dt>
-    <dd>{{ . }}</dd>
     {{- end }}
 
     {{- with $symbol }}

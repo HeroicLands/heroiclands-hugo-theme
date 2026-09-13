@@ -60,18 +60,93 @@
   trees now carry zero `traits:` blocks, so that fallback has been removed
   (#56) and this partial reads `data:` alone.
 */ -}}
+{{- $ctx        := . -}}
 {{- $sohl       := hugo.Data.sohl -}}
 {{- $attrNames  := $sohl.attributes -}}
 {{- $attrCols   := $sohl.attribute_columns -}}
 {{- $skillNames := $sohl.skills -}}
 {{- $categories := $sohl.skill_categories -}}
-{{- /* Defaulted to empty maps, not read straight through: a being with no
-       `sohl` or `data` block is ordinary — most creatures have neither —
-       and `index` on a nil map is a build error, not an empty section. */ -}}
-{{- $attrs      := dict -}}{{- with .Params.sohl }}{{- with .attributes }}{{ $attrs = . }}{{ end }}{{ end -}}
-{{- $skills     := dict -}}{{- with .Params.sohl }}{{- with .skills     }}{{ $skills = . }}{{ end }}{{ end -}}
 {{- $data       := dict -}}{{- with .Params.data   }}{{ $data = . }}{{ end -}}
 {{- $social     := dict -}}{{- with .Params.social }}{{ $social = . }}{{ end -}}
+
+{{- /* A being's whole loadout — attributes, skills, mystical abilities and
+       carried gear — is one flat `sohl.items` list. Each entry names what it
+       is one of two ways: `model` is a catalogue address whose last two
+       hyphen-separated segments are always `<type>-<shortcode>` (short form
+       within this package, or the trailing pair of the full
+       `package-system-type-shortcode` reaching another one — both end the
+       same way), or, for a locally-authored copy, the address has already
+       been resolved to explicit `type`/`shortcode` keys by the compiler. A
+       custom item (no model at all) states `type` and `system.shortcode`
+       directly. One decode covers all three.
+
+       Sorted into four buckets here rather than re-scanned once per section
+       below, since every section needs the same per-entry classification. */ -}}
+{{- $attrs      := dict -}}
+{{- $skills     := dict -}}
+{{- $spells     := slice -}}
+{{- $talents    := slice -}}
+{{- $gearGroups := dict "weapons" slice "armor" slice "projectiles" slice "misc" slice "containers" slice "concoctions" slice -}}
+{{- $gearGroupByType := dict
+    "weapongear"     "weapons"
+    "armorgear"      "armor"
+    "projectilegear" "projectiles"
+    "miscgear"       "misc"
+    "containergear"  "containers"
+    "concoctiongear" "concoctions" -}}
+{{- /* Mystical-ability subTypes naming an innate, untrained knack; every
+       other subType is a practice — a rite, incantation or working — and
+       renders under "Spells". */ -}}
+{{- $talentSubTypes := slice "arcanetalent" "spirittalent" -}}
+{{- $rawItems := slice -}}{{- with .Params.sohl }}{{- with .items }}{{ $rawItems = . }}{{ end }}{{ end -}}
+{{- range $rawItems -}}
+  {{- $entry := . -}}
+  {{- $itemType := $entry.type | default "" -}}
+  {{- $shortcode := $entry.shortcode | default "" -}}
+  {{- $entryName := $entry.name | default "" -}}
+  {{- if not $itemType -}}
+    {{- with $entry.model -}}
+      {{- $segs := split . "-" -}}
+      {{- if ge (len $segs) 2 -}}
+        {{- $itemType = index $segs (sub (len $segs) 2) -}}
+        {{- if not $shortcode }}{{ $shortcode = index $segs (sub (len $segs) 1) }}{{ end -}}
+      {{- end -}}
+    {{- end -}}
+  {{- end -}}
+  {{- if not $shortcode -}}{{- with $entry.system }}{{- with .shortcode }}{{ $shortcode = . }}{{ end }}{{ end -}}{{- end -}}
+  {{- if and $itemType $shortcode -}}
+    {{- if eq $itemType "attribute" -}}
+      {{- with $entry.system }}{{- if ne .scoreBase nil }}{{ $attrs = merge $attrs (dict $shortcode .scoreBase) }}{{ end }}{{ end -}}
+    {{- else if eq $itemType "skill" -}}
+      {{- with $entry.system }}{{- if ne .masteryLevelBase nil }}{{ $skills = merge $skills (dict $shortcode .masteryLevelBase) }}{{ end }}{{ end -}}
+    {{- else if eq $itemType "mysticalability" -}}
+      {{- $subType := "" -}}
+      {{- with $entry.system }}{{- with .subType }}{{ $subType = . }}{{ end }}{{ end -}}
+      {{- $pg := first 1 (where (where $ctx.Site.RegularPages "Params.shortcode" $shortcode) "Params.type" $itemType) -}}
+      {{- with index $pg 0 -}}
+        {{- if not $entryName }}{{ $entryName = .LinkTitle }}{{ end -}}
+        {{- if not $subType }}{{ $subType = .Params.subType | default "" }}{{ end -}}
+      {{- end -}}
+      {{- if not $entryName }}{{ $entryName = humanize $shortcode | title }}{{ end -}}
+      {{- $mEntry := dict "name" $entryName -}}
+      {{- with index $pg 0 }}{{ $mEntry = merge $mEntry (dict "url" .Permalink) }}{{ end -}}
+      {{- if in $talentSubTypes $subType -}}
+        {{- $talents = $talents | append $mEntry -}}
+      {{- else -}}
+        {{- $spells = $spells | append $mEntry -}}
+      {{- end -}}
+    {{- else if index $gearGroupByType $itemType -}}
+      {{- $group := index $gearGroupByType $itemType -}}
+      {{- $pg := first 1 (where (where $ctx.Site.RegularPages "Params.shortcode" $shortcode) "Params.type" $itemType) -}}
+      {{- with index $pg 0 -}}{{- if not $entryName }}{{ $entryName = .LinkTitle }}{{ end }}{{- end -}}
+      {{- if not $entryName }}{{ $entryName = humanize $shortcode | title }}{{ end -}}
+      {{- $gEntry := dict "name" $entryName -}}
+      {{- with index $pg 0 }}{{ $gEntry = merge $gEntry (dict "url" .Permalink) }}{{ end -}}
+      {{- $gearGroups = merge $gearGroups (dict $group (index $gearGroups $group | append $gEntry)) -}}
+    {{- end -}}
+  {{- end -}}
+{{- end -}}
+
 {{- $corpus     := "" -}}{{- with .Params.sohl }}{{- with .corpus }}{{ $corpus = . }}{{ end }}{{ end -}}
 {{- $birthsign  := "" -}}{{- with .Params.sohl }}{{ $birthsign = .birthsign }}{{ end -}}
 
@@ -112,25 +187,22 @@
   {{- $birthday := "" -}}{{- with $data.birthday }}{{ $birthday = . }}{{ end -}}
   {{- /* A being's religion is not a property of the being. It is an
          affiliation they hold — which carries their standing within the body —
-         so it is read off `sohl.items`, alongside their skills and gear,
-         rather than from a `faith` field that duplicated it. Resolve each to
-         its page so the row links. */ -}}
+         so it is read off `data.affiliations`, the being's own list of
+         affiliation shortcodes, rather than from a `faith` field that
+         duplicated it. Resolve each to its page so the row links; narrowed
+         by `type` because a shortcode is unique within a type, not across
+         the site. */ -}}
   {{- $affiliations := slice -}}
-  {{- $ctx := . -}}
-  {{- with .Params.sohl }}{{- with .items -}}
+  {{- with $data.affiliations -}}
     {{- range . -}}
-      {{- if eq (.type | default "") "affiliation" -}}
-        {{- with .shortcode -}}
-          {{- $pg := first 1 (where $ctx.Site.RegularPages "Params.shortcode" .) -}}
-          {{- with index $pg 0 -}}
-            {{- $affiliations = $affiliations | append (printf `<a href="%s">%s</a>` .Permalink .LinkTitle) -}}
-          {{- else -}}
-            {{- $affiliations = $affiliations | append (humanize . | title) -}}
-          {{- end -}}
-        {{- end -}}
+      {{- $pg := first 1 (where (where $ctx.Site.RegularPages "Params.shortcode" .) "Params.type" "affiliation") -}}
+      {{- with index $pg 0 -}}
+        {{- $affiliations = $affiliations | append (printf `<a href="%s">%s</a>` .Permalink .LinkTitle) -}}
+      {{- else -}}
+        {{- $affiliations = $affiliations | append (humanize . | title) -}}
       {{- end -}}
     {{- end -}}
-  {{- end }}{{- end -}}
+  {{- end -}}
 
   {{- /* Where the being is from. Both values are shortcodes — identity,
          which survives a retitle — so each joins on `Params.shortcode` the way
@@ -185,7 +257,8 @@
     <dd>{{ $birthday }}{{ if and $birthday $birthsign }} {{ end }}{{ with $birthsign }}<span class="info-sub">(Sunsign: {{ . }})</span>{{ end }}</dd>
     {{- end }}
 
-    {{- with $social.occupation }}
+    {{- $occupation := $data.occupation | default $social.occupation -}}
+    {{- with $occupation }}
     <dt>Occupation</dt>
     <dd>{{ . | humanize | title }}</dd>
     {{- end }}
@@ -324,17 +397,17 @@
 
   {{- /* ---- Spells (Domain / Spell) ---- */ -}}
   {{- partial "sidebars/mystical.html" (dict
-    "items" .Params.sohl.spells
+    "items" $spells
     "title" "Spells"
     "kind"  "spell") }}
 
   {{- /* ---- Arcane Talents ---- */ -}}
   {{- partial "sidebars/mystical.html" (dict
-    "items" .Params.sohl.talents
+    "items" $talents
     "title" "Arcane Talents"
     "kind"  "talent") }}
 
   {{- /* ---- Equipment (weapons, armor, misc, containers, …) ---- */ -}}
-  {{- partial "sidebars/equipment.html" .Params.sohl.gear }}
+  {{- partial "sidebars/equipment.html" $gearGroups }}
 
 </aside>

@@ -15,16 +15,32 @@
   the card jumped straight to the continent — so a nested region's own
   `parent.regions` was recorded and never shown, and the chain a reader could
   walk had a hole in it.
+
+  This is `type: place, subType: region` — a continent is the same subType
+  carrying the tag `continent`, not a distinct one. The enclosing places are
+  one flat `data.parents` list of shortcodes; each is resolved to a real
+  page and sorted into "Region" or "Continent" by whether that page itself
+  carries the `continent` tag.
 */ -}}
 
 {{- $ctx := . -}}
+{{- $data := dict -}}{{- with .Params.data }}{{ $data = . }}{{ end -}}
 {{- $name   := "" -}}{{- with .Params.name.full }}{{ $name = . }}{{ end -}}
 {{- if not $name }}{{ $name = .Title }}{{ end -}}
 {{- $regs   := slice -}}
 {{- $conts  := slice -}}
-{{- with .Params.parent -}}
-  {{- with .regions    }}{{ $regs = . }}{{ end -}}
-  {{- with .continents }}{{ $conts = . }}{{ end -}}
+{{- range $data.parents -}}
+  {{- $code := . -}}
+  {{- $pg := first 1 (where (where $ctx.Site.RegularPages "Params.shortcode" $code) "Params.subType" "region") -}}
+  {{- with index $pg 0 -}}
+    {{- $isCont := false -}}
+    {{- range .Params.tags }}{{- if eq . "continent" }}{{ $isCont = true }}{{ end }}{{- end -}}
+    {{- if $isCont -}}
+      {{- $conts = $conts | append $code -}}
+    {{- else -}}
+      {{- $regs = $regs | append $code -}}
+    {{- end -}}
+  {{- end -}}
 {{- end -}}
 
 <aside class="geo-infobox region-infobox info-sidebar">
@@ -40,12 +56,12 @@
     {{- if gt (len $regs) 0 }}
     <dt>Region{{ if gt (len $regs) 1 }}s{{ end }}</dt>
     <dd>
-      {{- /* Narrowed by category: a shortcode is unique within a type, not
+      {{- /* Narrowed by subType: a shortcode is unique within a type, not
              across the site, so an unnarrowed lookup can reach a polity of
              the same name instead of the region above this one. */ -}}
       {{- $parts := slice -}}
       {{- range $code := $regs -}}
-        {{- $pg := first 1 (where (where $ctx.Site.RegularPages "Params.shortcode" $code) "Params.category" "region") -}}
+        {{- $pg := first 1 (where (where $ctx.Site.RegularPages "Params.shortcode" $code) "Params.subType" "region") -}}
         {{- with index $pg 0 -}}
           {{- $parts = $parts | append (printf `<a href="%s">%s</a>` .Permalink .LinkTitle) -}}
         {{- else -}}

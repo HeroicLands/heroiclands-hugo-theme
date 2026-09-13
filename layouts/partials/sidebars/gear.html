@@ -19,6 +19,14 @@
 */ -}}
 {{- $type  := .Params.type -}}
 {{- $sohl  := .Params.sohl | default dict -}}
+{{- /* A gear note's own values land in one of two places depending on type:
+       `weapongear` and `concoctiongear` compile to flat fields directly under
+       `sohl`; `armorgear`, `containergear`, `projectilegear` and `miscgear`
+       keep the nested, `…Base`-suffixed shape they are authored in
+       (`sohl.system.weightBase`, not `sohl.weight`). Both are read, flat
+       first, so the shared Price/Weight/Durability rows work for every
+       type without six copies of the same three lines. */ -}}
+{{- $sys := $sohl.system | default dict -}}
 
 {{- $titleByType := dict
     "weapongear"     "Weapon Profile"
@@ -44,6 +52,7 @@
 
     {{- /* Price — integer pence, "d" suffix */ -}}
     {{- $value := $sohl.value -}}
+    {{- if eq $value nil }}{{ $value = $sys.valueBase }}{{ end -}}
     {{- if ne $value nil }}
     <dt>Price</dt>
     <dd>{{ printf "%vd" $value }}</dd>
@@ -51,20 +60,23 @@
 
     {{- /* Weight — pounds */ -}}
     {{- $weight := $sohl.weight -}}
+    {{- if eq $weight nil }}{{ $weight = $sys.weightBase }}{{ end -}}
     {{- if ne $weight nil }}
     <dt>Weight</dt>
     <dd>{{ printf "%v lbs" $weight }}</dd>
     {{- end }}
 
     {{- /* Durability */ -}}
-    {{- with $sohl.durability }}
+    {{- $durability := $sohl.durability -}}
+    {{- if eq $durability nil }}{{ $durability = $sys.durabilityBase }}{{ end -}}
+    {{- with $durability }}
     <dt>Durability</dt>
     <dd>{{ . }}</dd>
     {{- end }}
 
     {{- /* ---- Container-only ---- */ -}}
     {{- if eq $type "containergear" }}
-      {{- with $sohl.maxCapacity }}
+      {{- with $sys.maxCapacityBase }}
       <dt>Max Capacity</dt>
       <dd>{{ . }} lbs</dd>
       {{- end }}
@@ -72,7 +84,9 @@
 
     {{- /* ---- Concoction-only ---- */ -}}
     {{- if eq $type "concoctiongear" }}
-      {{- $sub := $sohl.subType -}}
+      {{- /* `subType` names the note as a published artefact and rides at
+             the top level, not inside the system block. */ -}}
+      {{- $sub := .Params.subType -}}
       {{- with $sub }}
       <dt>Subtype</dt>
       <dd>{{ . | humanize | title }}</dd>
@@ -87,16 +101,16 @@
 
     {{- /* ---- Armor-only ---- */ -}}
     {{- if eq $type "armorgear" }}
-      {{- with .Params.material }}
+      {{- with $sys.material }}
       <dt>Material</dt>
       <dd>{{ . }}</dd>
       {{- end }}
-      {{- $enc := $sohl.encumbrance -}}
+      {{- $enc := $sys.encumbrance -}}
       {{- if ne $enc nil }}
       <dt>Encumbrance</dt>
       <dd>{{ $enc }}</dd>
       {{- end }}
-      {{- $per := $sohl.perception -}}
+      {{- $per := $sys.perceptionPenaltyBase -}}
       {{- if ne $per nil }}
       <dt>Perception Penalty</dt>
       <dd>{{ $per }}</dd>
@@ -105,7 +119,7 @@
 
     {{- /* ---- Weapon-only ---- */ -}}
     {{- if eq $type "weapongear" }}
-      {{- with .Params.weaponType }}
+      {{- with $sohl.weaponType }}
       <dt>Weapon Type</dt>
       <dd>{{ . }}</dd>
       {{- end }}
@@ -113,16 +127,12 @@
       <dt>Heft</dt>
       <dd>{{ . }}</dd>
       {{- end }}
-      {{- with .Params.length }}
-      <dt>Length</dt>
-      <dd>{{ . }} ft</dd>
-      {{- end }}
     {{- end }}
   </dl>
 
   {{- /* ---- Armor: Protection (B/E/P/F) ---- */ -}}
   {{- if eq $type "armorgear" }}
-    {{- with $sohl.protection }}
+    {{- with $sys.protectionBase }}
     <section class="info-section">
       <h3 class="info-section-title">Protection</h3>
       <div class="info-protection-grid">
@@ -134,17 +144,20 @@
     </section>
     {{- end }}
 
-    {{- with $sohl.flexloc }}{{- if gt (len .) 0 }}
+    {{- /* Locations are shortcodes, not display names — humanized for lack
+           of a body-location name table in `data/sohl.yaml`. */ -}}
+    {{- $locations := $sys.locations | default dict -}}
+    {{- with $locations.flexible }}{{- if gt (len .) 0 }}
     <section class="info-section">
       <h3 class="info-section-title">Flexible Locations</h3>
-      <p class="info-loc-list">{{ delimit . ", " }}</p>
+      <p class="info-loc-list">{{ delimit (apply . "humanize" ".") ", " | title }}</p>
     </section>
     {{- end }}{{- end }}
 
-    {{- with $sohl.rigidloc }}{{- if gt (len .) 0 }}
+    {{- with $locations.rigid }}{{- if gt (len .) 0 }}
     <section class="info-section">
       <h3 class="info-section-title">Rigid Locations</h3>
-      <p class="info-loc-list">{{ delimit . ", " }}</p>
+      <p class="info-loc-list">{{ delimit (apply . "humanize" ".") ", " | title }}</p>
     </section>
     {{- end }}{{- end }}
   {{- end }}
@@ -171,7 +184,7 @@
 
   {{- /* ---- Weapon: Strike Modes ---- */ -}}
   {{- if eq $type "weapongear" }}
-    {{- with .Params.strikeModes }}
+    {{- with $sohl.strikeModes }}
     <section class="info-section">
       <h3 class="info-section-title">Strike Modes</h3>
       <table class="strike-mode-table">
@@ -187,21 +200,19 @@
         </thead>
         <tbody>
           {{- range $modeKey, $mode := . }}
-            {{- $desc := $mode.subDesc | default ($modeKey | humanize | title) -}}
-            {{- $skill := $mode.assocSkill | default "-" -}}
+            {{- $desc := $mode.name | default ($modeKey | humanize | title) -}}
+            {{- $skill := $mode.assocSkillCode | default "-" -}}
             {{- $acc := "-" -}}
-            {{- with $mode.attack }}{{ $acc = .accuracy | default 0 }}{{ end -}}
+            {{- with $mode.attack }}{{ $acc = .spread | default 0 }}{{ end -}}
             {{- $impact := "-" -}}
-            {{- with $mode.impact }}{{ $impact = partial "sidebars/impact.html" . }}{{ end -}}
+            {{- with $mode.impactBase }}{{ $impact = partial "sidebars/impact.html" . }}{{ end -}}
             {{- $baseRng := "-" -}}
             {{- $draw := "-" -}}
-            {{- with $mode.ranged -}}
-              {{- $br := .baseRange | default 0 -}}
-              {{- if gt $br 0 -}}
-                {{- $baseRng = $br -}}
-                {{- $draw = .draw | default 0 -}}
-              {{- end -}}
-            {{- end }}
+            {{- $br := $mode.baseRangeBase | default 0 -}}
+            {{- if gt $br 0 -}}
+              {{- $baseRng = $br -}}
+              {{- $draw = $mode.drawBase | default 0 -}}
+            {{- end -}}
           <tr>
             <td>{{ $desc }}</td>
             <td>{{ $skill }}</td>
@@ -219,7 +230,7 @@
 
   {{- /* ---- Projectile: Impact + Traits ---- */ -}}
   {{- if eq $type "projectilegear" }}
-    {{- with $sohl.impact }}
+    {{- with $sys.impactBase }}
     <section class="info-section">
       <h3 class="info-section-title">Impact</h3>
       <p class="info-impact">{{ partial "sidebars/impact.html" . }}</p>
