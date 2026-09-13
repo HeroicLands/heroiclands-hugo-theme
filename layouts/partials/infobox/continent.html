@@ -7,12 +7,23 @@
   Fields rendered (all optional — guards keep missing data silent):
     - Name
     - World — single shortcode, rendered as a link when a matching page exists.
+
+  This is `type: place, subType: region` carrying the tag `continent` — not
+  a distinct subType. The world is the entry in the continent's own flat
+  `data.parents` list that resolves to a `subType: world` page.
 */ -}}
 
 {{- $ctx := . -}}
+{{- $data := dict -}}{{- with .Params.data }}{{ $data = . }}{{ end -}}
 {{- $name   := "" -}}{{- with .Params.name.full }}{{ $name = . }}{{ end -}}
 {{- if not $name }}{{ $name = .Title }}{{ end -}}
-{{- $world  := .Params.world -}}
+{{- $world  := "" -}}
+{{- range $data.parents -}}
+  {{- if not $world -}}
+    {{- $pg := first 1 (where (where $ctx.Site.RegularPages "Params.shortcode" .) "Params.subType" "world") -}}
+    {{- if $pg }}{{ $world = . }}{{ end -}}
+  {{- end -}}
+{{- end -}}
 
 <aside class="geo-infobox continent-infobox info-sidebar">
 

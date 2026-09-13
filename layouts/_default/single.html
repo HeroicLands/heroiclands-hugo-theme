@@ -3,12 +3,24 @@
 {{ partial "breadcrumbs.html" . }}
 
 {{- $type := .Params.type | default "" -}}
-{{- /* Narrative content now uses type=doc with a `category` subtype
-       label (e.g. continent/region/polity/faith). Structured content
-       (being/gear) keeps its own type. $subtype collapses
-       both shapes into a single value so the dispatch below doesn't
-       need to know which shape a given page uses. */ -}}
-{{- $subtype := cond (eq $type "doc") (.Params.category | default "") $type -}}
+{{- /* A note's own `subType` is the current source of what kind of place or
+       affiliation a page is — `type: place, subType: settlement`,
+       `type: affiliation, subType: polity`. Narrative content that still
+       uses the retired `type: doc` + `category:` shape falls back to that;
+       anything else falls back to `$type` itself, so structured content
+       (being/gear, which carries no `subType`) dispatches on its own type
+       exactly as before. */ -}}
+{{- $subtype := .Params.subType | default "" -}}
+{{- if not $subtype -}}
+  {{- $subtype = cond (eq $type "doc") (.Params.category | default "") $type -}}
+{{- end -}}
+{{- /* A continent is a region carrying the tag `continent`, not a distinct
+       subType — it is structurally the same as any other region: the same
+       fields, the same parent chain, everything but scale. */ -}}
+{{- $isContinent := false -}}
+{{- if eq $subtype "region" -}}
+  {{- range .Params.tags }}{{- if eq . "continent" }}{{ $isContinent = true }}{{ end }}{{- end }}
+{{- end -}}
 {{- $gearTypes := slice "weapongear" "armorgear" "miscgear" "containergear" "projectilegear" "concoctiongear" -}}
 {{- /* `character` and `creature` were merged into `being` upstream. They are
        still honoured because consumers migrate their own content on their own
@@ -51,10 +63,10 @@
              the right column stays free for the TOC. */ -}}
       {{- if eq $subtype "polity" -}}
         {{ partial "infobox/polity.html" . }}
+      {{- else if $isContinent -}}
+        {{ partial "infobox/continent.html" . }}
       {{- else if eq $subtype "region" -}}
         {{ partial "infobox/region.html" . }}
-      {{- else if eq $subtype "continent" -}}
-        {{ partial "infobox/continent.html" . }}
       {{- else if eq $type "affiliation" -}}
         {{ partial "infobox/affiliation.html" . }}
       {{- else if eq $subtype "settlement" -}}
