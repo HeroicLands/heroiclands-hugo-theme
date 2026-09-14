@@ -17,10 +17,13 @@
 
   - A **note box** with no section holding anything is not drawn. A heading
     over nothing asserts a fact that is not there.
-  - A **system box** is always drawn, because its emptiness is the statement:
-    a system that maps this note's type but compiled no document for it reads
-    "Not available", which a reader meeting one page can act on. A system that
-    does not map the type at all sends no box, and nothing is drawn.
+  - A **system box** carries a `statement` where it has nothing to show, and
+    the statement is drawn in place of the sections. Which silence this is —
+    the system compiled no document, or it compiled one holding nothing the
+    profile has not already said — is decided by the build, because a reader
+    meeting one page cannot tell the two apart and neither can a template. A
+    system that does not map the note's type at all sends no box, and nothing
+    is drawn.
 
   Returns an empty string when the page declares no box, so a caller can test
   what comes back rather than reaching into the data itself.
@@ -37,8 +40,8 @@
   {{- if or $system (gt (len $sections) 0) }}
 <details class="info-sidebar info-box{{ with $box.id }} info-box-{{ . }}{{ end }}" open>
   <summary class="info-sidebar-title"><h2>{{ $box.title }}</h2></summary>
-  {{- if and $system (not $box.available) }}
-  <p class="info-unavailable">Not available</p>
+  {{- with $box.statement }}
+  <p class="info-statement">{{ . }}</p>
   {{- else }}
     {{- range $sections }}
   <section class="info-section{{ with .id }} info-section-{{ . }}{{ end }}">

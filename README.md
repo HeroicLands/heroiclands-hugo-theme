@@ -509,10 +509,13 @@ its own words where it did not. A whole `number` is set with digit grouping.
 - **An absent field is absent**: a row with no value is not emitted, and a
   section holding nothing is not drawn. A heading over nothing asserts a fact
   that is not there.
-- **A system box that produced no document reads _Not available_.** That is a
-  statement about the page, not a missing field, so it is drawn rather than
-  dropped. A system that has no such concept for this kind of page sends no
-  box at all, and nothing is drawn.
+- **A system box with nothing to show carries a `statement`**, and it is drawn
+  in place of the sections — _Not available_ where that system compiled no
+  document for the page, _Nothing beyond the profile_ where it compiled one
+  that says nothing the profile has not. Both are statements about the page
+  rather than missing fields, and which one applies is the build's to decide,
+  so a box is never an empty panel. A system that has no such concept for this
+  kind of page sends no box at all, and nothing is drawn.
 
 A page whose front matter declares no `infoboxes:` renders no rail, so a
 consumer whose content does not carry them is unaffected.

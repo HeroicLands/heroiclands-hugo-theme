@@ -27,8 +27,10 @@ that chose between them.
 **What a reader sees**
 
 - **Every page carries a Profile box**, and one box per game system its kind of
-  page reaches. A system that compiled no document for the page says
-  _Not available_; a system with no such concept draws no box.
+  page reaches. A system box with nothing to show says why — _Not available_
+  where that system compiled no document for the page, _Nothing beyond the
+  profile_ where what it compiled says nothing the profile has not. A system
+  with no such concept for the page draws no box at all.
 - **A box opens and closes.** Closed it is a single line, so a page carrying
   three boxes costs three headings rather than three panels above the prose.
 - **The boxes sit in a rail beside the text**, and above it on a narrow screen.

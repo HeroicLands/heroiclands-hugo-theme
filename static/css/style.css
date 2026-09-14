@@ -1562,10 +1562,10 @@ summary.info-sidebar-title::after {
   letter-spacing: 0.04em;
 }
 
-/* What a box says when the system it belongs to compiled no document for this
-   note. It is a statement about the note, not a missing field, so it is drawn
-   rather than dropped. */
-.info-unavailable {
+/* What a box says in place of its sections when it has nothing to show. It is
+   a statement about the note, not a missing field, so it is drawn rather than
+   dropped. */
+.info-statement {
   margin: 0;
   color: var(--text-muted);
   font-style: italic;
