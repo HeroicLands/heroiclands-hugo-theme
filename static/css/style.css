@@ -1433,10 +1433,64 @@ a.tag:hover {
   min-width: 0;
 }
 
+/* The rail is written first in the markup, because the infobox is content
+   prepended before the prose. Placing both children explicitly puts it on the
+   right of a wide screen without moving it in the document. */
+.single.single-with-sidebar > .single-content {
+  grid-column: 1;
+  grid-row: 1;
+}
+
+.single.single-with-sidebar > .info-rail {
+  grid-column: 2;
+  grid-row: 1;
+}
+
 @media (max-width: 960px) {
   .single.single-with-sidebar {
     grid-template-columns: 1fr;
     gap: 2rem;
+  }
+
+  /* One column, so document order governs and the boxes sit above the prose
+     they summarise. */
+  .single.single-with-sidebar > .single-content,
+  .single.single-with-sidebar > .info-rail {
+    grid-column: 1;
+    grid-row: auto;
+  }
+}
+
+/* ---- The infobox rail ----
+
+   Holds a page's boxes, and its contents list beneath them where it has one.
+   The rail is what sticks; the panels inside it stack and scroll with it,
+   which is what lets several boxes share one column without each of them
+   fighting for the same sticky offset. */
+
+.info-rail {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  min-width: 0;
+  align-self: start;
+  position: sticky;
+  top: 2rem;
+}
+
+/* A panel in the rail fills the column and leaves the sticking to the rail.
+   `align-self` is the rail's cross axis here, so a box that keeps the
+   grid-item value collapses to the width of its own title when closed. */
+.info-rail > .info-sidebar,
+.info-rail > .toc {
+  position: static;
+  top: auto;
+  align-self: stretch;
+}
+
+@media (max-width: 960px) {
+  .info-rail {
+    position: static;
   }
 }
 
@@ -1454,12 +1508,49 @@ a.tag:hover {
   font-size: 1rem;
 }
 
-/* "Character Profile" header band */
+/* The box's header band, and the control that opens and closes it. A box is a
+   native `<details>` disclosure, so the affordance costs no JavaScript; the
+   chevron replaces the browser's own marker, which a centred title cannot
+   accommodate. */
 .info-sidebar-title {
   margin: 0 0 1rem;
   padding: 0.5rem 0;
   text-align: center;
   border-bottom: 1px solid var(--border);
+}
+
+summary.info-sidebar-title {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.6rem;
+  cursor: pointer;
+  list-style: none;
+}
+
+summary.info-sidebar-title::-webkit-details-marker {
+  display: none;
+}
+
+summary.info-sidebar-title::after {
+  content: "";
+  width: 0.45rem;
+  height: 0.45rem;
+  border-right: 2px solid var(--text-muted);
+  border-bottom: 2px solid var(--text-muted);
+  transform: translateY(-0.15em) rotate(45deg);
+  transition: transform 0.15s ease;
+}
+
+.info-sidebar[open] > summary.info-sidebar-title::after {
+  transform: translateY(0.1em) rotate(-135deg);
+}
+
+/* Closed, a box is one line: no rule under the title and nothing below it, so
+   a note box and one box per system stack as three headings. */
+.info-sidebar:not([open]) > summary.info-sidebar-title {
+  margin-bottom: 0;
+  border-bottom: 0;
 }
 
 .info-sidebar-title h2 {
@@ -1469,6 +1560,15 @@ a.tag:hover {
   color: var(--text);
   margin: 0;
   letter-spacing: 0.04em;
+}
+
+/* What a box says when the system it belongs to compiled no document for this
+   note. It is a statement about the note, not a missing field, so it is drawn
+   rather than dropped. */
+.info-unavailable {
+  margin: 0;
+  color: var(--text-muted);
+  font-style: italic;
 }
 
 /* Compact label/value list at the top of the profile */
@@ -1494,6 +1594,12 @@ a.tag:hover {
   margin: 0;
   line-height: 1.35;
   min-width: 0;
+}
+
+/* The grid carries its own trailing space when it stands alone; inside a
+   section the spacing between sections owns it. */
+.info-section > .info-profile-grid:last-child {
+  margin-bottom: 0;
 }
 
 .info-profile-grid .info-sub {
@@ -1789,29 +1895,6 @@ a.tag:hover {
   }
 }
 
-/* ---- Sidebar image (fills the top of the info sidebar) ---- */
-
-.info-portrait-link {
-  display: block;
-  width: calc(100% + 3rem);
-  /* Negative margins cancel the aside's 1.5rem padding on top/left/right
-     so the image bleeds edge-to-edge with the card. */
-  margin: -1.5rem -1.5rem 1.25rem;
-  border-top-left-radius: 0.5rem;
-  border-top-right-radius: 0.5rem;
-  border-bottom: 1px solid var(--border);
-  background: var(--bg);
-  overflow: hidden; /* clip the image to the rounded corners */
-}
-
-.info-portrait {
-  display: block;
-  /* Width fills the link (which fills the bleed), height follows the image's
-     natural aspect ratio so nothing is stretched or cropped. */
-  width: 100%;
-  height: auto;
-}
-
 /* ---- Auto-listing (taxonomy, term, and auto-section index pages) ---- */
 
 .page-list {
@@ -1878,9 +1961,9 @@ a.tag:hover {
 
 /* ---- Table of contents (right rail) ---- */
 
-/* Applied by single.html when the page has more than 3 H2s and is
-   not already using the info-sidebar (character/creature profiles).
-   Mirrors `.single-with-sidebar` but with a narrower rail. */
+/* Applied by single.html when a page has more than 3 H2s and no infobox
+   rail — a page with both puts its contents list at the foot of that rail.
+   Mirrors `.single-with-sidebar` with a narrower column. */
 .single.single-with-toc {
   display: grid;
   grid-template-columns: minmax(0, 1fr) clamp(200px, 22vw, 260px);
@@ -1978,16 +2061,14 @@ a.tag:hover {
   }
 }
 
-/* ---- Geographic infoboxes (in-flow, floated) ----
+/* ---- Floated infoboxes (in-flow) ----
 
-   Polities, regions, and continents each get a compact profile card
-   floated to the left at the start of their content column. Prose
-   wraps around it, and the right column stays free for the TOC. The
-   card scrolls away with the page rather than sticking to the
-   viewport. Inherits the visual style of .info-sidebar so the card
-   matches other profile blocks, then overrides the sidebar's sticky
-   positioning and size. All three share .geo-infobox; per-type hook
-   classes (.polity-infobox, etc.) are available for future tweaks. */
+   A box carrying .geo-infobox is floated to the left of the content column
+   instead of sitting in the rail: prose wraps around it and it scrolls away
+   with the page. It inherits the visual style of .info-sidebar so the card
+   matches every other box, then undoes the rail's sticky positioning and
+   size. The per-type hook classes (.polity-infobox and the rest) carry no
+   rules of their own and are here for a consumer to hang one on. */
 
 .geo-infobox,
 .polity-infobox,
@@ -2238,39 +2319,6 @@ a.tag:hover {
     width: 8rem;
     height: 3.25rem;
   }
-}
-
-/* Affiliation infobox icons. Independent — a page can have either,
-   both, or neither.
-   - .affiliation-portrait (img field) sits ABOVE the "Affiliation
-     Profile" title at the top of the card. Constrained to 150×150 max,
-     centered within the card's padding.
-   - .affiliation-glyph (glyph field) sits BELOW the title's dividing
-     line, using the same limestone tablet as the pantheon table. */
-
-.affiliation-portrait {
-  display: flex;
-  justify-content: center;
-  margin: 0 0 1rem;
-  line-height: 0;
-}
-
-.affiliation-portrait img {
-  display: block;
-  max-width: 150px;
-  max-height: 150px;
-  width: auto;
-  height: auto;
-  object-fit: contain;
-  border: none;
-  border-radius: 0.25rem;
-  margin: 0;
-}
-
-.affiliation-glyph {
-  display: flex;
-  justify-content: center;
-  margin: 0 0 0.8rem;
 }
 
 /* ---- Related section (bottom of article) ----

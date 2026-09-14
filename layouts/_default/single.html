@@ -2,44 +2,33 @@
 {{ partial "hero-banner.html" . }}
 {{ partial "breadcrumbs.html" . }}
 
-{{- $type := .Params.type | default "" -}}
-{{- /* A note's own `subType` is the current source of what kind of place or
-       affiliation a page is — `type: place, subType: settlement`,
-       `type: affiliation, subType: polity`. Narrative content that still
-       uses the retired `type: doc` + `category:` shape falls back to that;
-       anything else falls back to `$type` itself, so structured content
-       (being/gear, which carries no `subType`) dispatches on its own type
-       exactly as before. */ -}}
-{{- $subtype := .Params.subType | default "" -}}
-{{- if not $subtype -}}
-  {{- $subtype = cond (eq $type "doc") (.Params.category | default "") $type -}}
-{{- end -}}
-{{- /* A continent is a region carrying the tag `continent`, not a distinct
-       subType — it is structurally the same as any other region: the same
-       fields, the same parent chain, everything but scale. */ -}}
-{{- $isContinent := false -}}
-{{- if eq $subtype "region" -}}
-  {{- range .Params.tags }}{{- if eq . "continent" }}{{ $isContinent = true }}{{ end }}{{- end }}
-{{- end -}}
-{{- $gearTypes := slice "weapongear" "armorgear" "miscgear" "containergear" "projectilegear" "concoctiongear" -}}
-{{- /* `character` and `creature` were merged into `being` upstream. They are
-       still honoured because consumers migrate their own content on their own
-       schedule and the theme cannot know which have; drop them once every
-       consuming site is on `being`. Kept in one list so this file and
-       info-sidebar.html cannot drift apart on what counts as a being. */ -}}
-{{- $beingTypes := slice "being" "character" "creature" -}}
-{{- $hasSidebar := or (in $beingTypes $type) (in $gearTypes $type) -}}
+{{- /* The boxes a page declares, drawn by one generic renderer. What each box
+       holds is decided by the build and carried in `infoboxes:` front matter;
+       this file decides only where the rail goes. A page declaring none gets
+       back an empty string and no rail. */ -}}
+{{- $infobox := partial "infobox.html" . -}}
+{{- $hasSidebar := ne (trim $infobox " \r\n\t") "" -}}
 
 {{- /* The TOC partial only emits markup when the page has more than
        3 H2 headings. To avoid laying the page out as a two-column
        grid for nothing, detect the same condition here so we can
-       apply the `.single-with-toc` class conditionally. We don't
-       show the TOC on pages that already have a right-rail info
-       sidebar (being profiles) — the sidebar wins. */ -}}
+       apply the `.single-with-toc` class conditionally. A page that
+       already has a rail gets its contents list at the foot of that
+       rail rather than a second column. */ -}}
 {{- $h2Count := len (findRE `(?m)^##\s+\S` (.RawContent | default "")) -}}
-{{- $hasToc := and (not $hasSidebar) (gt $h2Count 3) -}}
+{{- $hasToc := gt $h2Count 3 -}}
 
-<article class="single{{ if $hasSidebar }} single-with-sidebar{{ end }}{{ if $hasToc }} single-with-toc{{ end }}">
+<article class="single{{ if $hasSidebar }} single-with-sidebar{{ else if $hasToc }} single-with-toc{{ end }}">
+  {{- if $hasSidebar }}
+  {{- /* The rail comes first in document order, because the infobox is
+         generated content prepended before the prose: on a narrow screen the
+         grid collapses and the boxes land where they were written, above the
+         text they summarise. */ -}}
+  <aside class="info-rail">
+    {{ $infobox }}
+    {{ if $hasToc }}{{ partial "toc.html" . }}{{ end }}
+  </aside>
+  {{- end }}
   <div class="single-content">
     {{ if or .Params.date .Params.tags }}
     <div class="single-meta">
@@ -55,23 +44,6 @@
     {{ end }}
 
     <div class="single-body">
-      {{- /* Floated in-content infoboxes for the geographic hierarchy.
-             Each one climbs the parent chain — polity → region(s) →
-             continent(s) → world — so readers can walk up from any
-             note to the landmass and world it belongs to. Rendered
-             as float-left cards so body text flows around them and
-             the right column stays free for the TOC. */ -}}
-      {{- if eq $subtype "polity" -}}
-        {{ partial "infobox/polity.html" . }}
-      {{- else if $isContinent -}}
-        {{ partial "infobox/continent.html" . }}
-      {{- else if eq $subtype "region" -}}
-        {{ partial "infobox/region.html" . }}
-      {{- else if eq $type "affiliation" -}}
-        {{ partial "infobox/affiliation.html" . }}
-      {{- else if eq $subtype "settlement" -}}
-        {{ partial "infobox/settlement.html" . }}
-      {{- end }}
       {{ .Content }}
     </div>
 
@@ -127,9 +99,7 @@
     </nav>
   </div>
 
-  {{ if $hasSidebar }}
-    {{ partial "info-sidebar.html" . }}
-  {{ else if $hasToc }}
+  {{ if and (not $hasSidebar) $hasToc }}
     {{ partial "toc.html" . }}
   {{ end }}
 </article>

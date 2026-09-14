@@ -1,0 +1,54 @@
+{{- /*
+  The infobox rail — every box a page declares, drawn in the order declared.
+
+  **The content is not decided here.** A page's `infoboxes:` front matter
+  carries an ordered list of boxes, each holding ordered sections, each holding
+  ordered rows, cells, groups or entries, already labelled. This partial and
+  the three under `infobox/` switch on a section's `layout` and a value's
+  `kind` and on nothing else — never on a note type, never on a field name.
+  That is what lets a field added to a type appear here with no edit.
+
+  A box is a `<details>` disclosure, open by default: native, accessible, and
+  no JavaScript. It is what lets several boxes stack for nothing — a note box
+  and one box per system are three summary lines when closed, rather than
+  three panels burying the prose.
+
+  Two kinds of box, and they answer emptiness differently:
+
+  - A **note box** with no section holding anything is not drawn. A heading
+    over nothing asserts a fact that is not there.
+  - A **system box** is always drawn, because its emptiness is the statement:
+    a system that maps this note's type but compiled no document for it reads
+    "Not available", which a reader meeting one page can act on. A system that
+    does not map the type at all sends no box, and nothing is drawn.
+
+  Returns an empty string when the page declares no box, so a caller can test
+  what comes back rather than reaching into the data itself.
+*/ -}}
+{{- range .Params.infoboxes -}}
+  {{- $box := . -}}
+  {{- $sections := slice -}}
+  {{- range $box.sections -}}
+    {{- if gt (len (partial "infobox/items.html" .)) 0 -}}
+      {{- $sections = $sections | append . -}}
+    {{- end -}}
+  {{- end -}}
+  {{- $system := eq ($box.kind | default "") "system" -}}
+  {{- if or $system (gt (len $sections) 0) }}
+<details class="info-sidebar info-box{{ with $box.id }} info-box-{{ . }}{{ end }}" open>
+  <summary class="info-sidebar-title"><h2>{{ $box.title }}</h2></summary>
+  {{- if and $system (not $box.available) }}
+  <p class="info-unavailable">Not available</p>
+  {{- else }}
+    {{- range $sections }}
+  <section class="info-section{{ with .id }} info-section-{{ . }}{{ end }}">
+    {{- with .label }}
+    <h3 class="info-section-title">{{ . }}</h3>
+    {{- end }}
+    {{ partial "infobox/section.html" . }}
+  </section>
+    {{- end }}
+  {{- end }}
+</details>
+  {{- end -}}
+{{- end -}}

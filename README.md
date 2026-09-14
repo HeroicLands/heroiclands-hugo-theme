@@ -5,10 +5,8 @@ the main site, the knowledgebase, and the generated API docs — reads as one
 coherent whole.
 
 It provides the brand chrome (header/footer, the Cinzel/Lora + dark palette,
-base CSS in `static/css/style.css`), the content layouts, and the SoHL
-info-block partials under `layouts/partials/sidebars/` (character, creature,
-gear, impact, mystical, equipment). Shortcode/display-name mappings live in
-`data/sohl.yaml`.
+base CSS in `static/css/style.css`), the content layouts, and the infobox
+renderer under `layouts/partials/infobox.html`.
 
 ## The theme carries layout, not addresses
 
@@ -36,8 +34,8 @@ The test is **whether a second consumer would need the same template**, not
 whether it looks reusable (issue #1454):
 
 - **Here:** the chrome and the generic page shapes — `baseof`, `_default/`,
-  `404.html`, the home layout, breadcrumbs, hero, TOC, related, and the
-  info-block partials driven by frontmatter every consumer's content carries.
+  `404.html`, the home layout, breadcrumbs, hero, TOC, related, and the infobox
+  renderer driven by the front matter every consumer's content carries.
 - **In the consumer:** templates that render one repository's content and
   nothing else's — per-type section landings (`weapongear/`, `creature/`, …),
   the partials those landings share, a site-specific home page, and any data
@@ -426,6 +424,98 @@ listSubType: rules
   collections carry Hugo's default page order.
 - The gap-filler applies as usual. A landing with an authored body lists only
   the members that body does not reach, under "Orphaned Pages".
+
+## The infobox
+
+A page's summary panels are **declared in its front matter and drawn by one
+generic renderer**. What a box holds — which fields, in what order, under what
+labels, in which section — is decided by the build that emits the page, so a
+field added to a content type appears here with no template change and reads
+the same on the website, in a compendium journal and in the book.
+
+`partials/infobox.html` draws the whole list. It switches on a section's
+`layout` and a value's `kind` and on nothing else: it never reads a note type
+and never reads a field name, which is what stops a field list growing back
+into a template.
+
+```yaml
+---
+infoboxes:
+  - id: note # the subject itself
+    kind: note
+    title: Profile
+    sections:
+      - id: profile
+        layout: rows
+        rows:
+          - label: Name
+            kind: text
+            value: Brànwâal Dôrgaar
+          - label: Affiliations
+            kind: links
+            value:
+              - text: The Silent Talon Company
+                url: /thalorna/affiliation-slntlncmpny/
+  - id: sohl # one box per system the page's type reaches
+    kind: system
+    system: sohl
+    title: SoHL
+    available: true
+    sections:
+      - id: attributes
+        label: Attributes
+        layout: grid
+        cells:
+          - label: STR
+            value: 14
+  - id: hm3
+    kind: system
+    system: hm3
+    title: HM3
+    available: false
+    sections: []
+---
+```
+
+**Four section layouts**, a closed set, each naming the key it carries its
+content under:
+
+| `layout` | shape                           | carried in | drawn as                                  |
+| -------- | ------------------------------- | ---------- | ----------------------------------------- |
+| `rows`   | label/value pairs, one per line | `rows`     | `.info-profile-grid`                      |
+| `grid`   | short label/value cells         | `cells`    | `.info-attrs-grid` / `.info-attr`         |
+| `runin`  | groups of comma-joined entries  | `groups`   | `.info-skill-line` / `.skill-cat`         |
+| `list`   | one entry per line              | `entries`  | `.info-mystical-list` / `.info-mystical-item` |
+
+**Five value kinds:** `text`, `number`, `link`, `links` and `list`. A `link` is
+`{text, url}` and renders as an anchor where the build reached the page, and as
+its own words where it did not. A whole `number` is set with digit grouping.
+
+**How the boxes are drawn, and what a page gets.**
+
+- Each box is a `<details>` disclosure, **open by default** — native,
+  accessible, no JavaScript. Closed, a box is one summary line, which is what
+  lets a note box and one box per system stack without burying the prose.
+- The boxes sit in a **rail on wide screens and inline on narrow ones**. The
+  rail is written first in the markup, because the infobox is content
+  prepended before the prose: when the grid collapses, the boxes land above
+  the text they summarise.
+- A page carrying boxes takes the `.single-with-sidebar` grid, and its
+  contents list — where it has more than three `<h2>`s — joins the foot of the
+  same rail. A page with a contents list and no boxes takes `.single-with-toc`
+  and its narrower column, exactly as before.
+- **A box carries no image.** A picture is authored in the page body, where
+  its position in the prose governs what follows it.
+- **An absent field is absent**: a row with no value is not emitted, and a
+  section holding nothing is not drawn. A heading over nothing asserts a fact
+  that is not there.
+- **A system box that produced no document reads _Not available_.** That is a
+  statement about the page, not a missing field, so it is drawn rather than
+  dropped. A system that has no such concept for this kind of page sends no
+  box at all, and nothing is drawn.
+
+A page whose front matter declares no `infoboxes:` renders no rail, so a
+consumer whose content does not carry them is unaffected.
 
 ## The hero banner
 
