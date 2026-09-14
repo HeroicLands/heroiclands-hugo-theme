@@ -82,7 +82,7 @@ jobs:
           node -e '
             const [p] = require("/tmp/pack.json");
             const files = p.files.map((f) => f.path);
-            const missing = ["theme.toml", "data/sohl.yaml"].filter(
+            const missing = ["theme.toml", "data/banners.yaml"].filter(
                 (f) => !files.includes(f),
             );
             const dirs = ["layouts/", "static/"].filter(
