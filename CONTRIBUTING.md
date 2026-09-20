@@ -53,9 +53,9 @@ request, squash-merged.
 5. `npm run lint` must pass — it asserts `.github/labels.yml` and §3 of the standard
    still agree, and that every banner `data/banners.yaml` declares is actually
    published. (`npm install` also installs the `commit-msg` hook.)
-6. **Declare the bump**: `npx changeset`, or `npx changeset add --empty` if the
-   change ships nothing to consumers. See [Releasing](#releasing) — a pull request
-   without one fails the **Changeset declared** check.
+6. **Declare the bump** when a consumer will notice: `npx changeset`. A change
+   that ships nothing to consumers carries no changeset at all. See
+   [Releasing](#releasing).
 7. **Commit** in Conventional-Commits style, and **open a pull request** with
    `Closes #<n>` and a what/why description.
 
@@ -64,10 +64,9 @@ request, squash-merged.
 Releasing runs from [changesets](https://github.com/changesets/changesets).
 **Nothing is published by hand, and no one runs a release command.**
 
-1. **Your pull request declares its bump** as a `.changeset/*.md` file — `npx
-   changeset` writes one. A change that ships nothing to consumers declares that
-   too, with `npx changeset add --empty`. The **Changeset declared** check fails a
-   pull request carrying neither.
+1. **Your pull request declares its bump** as a `.changeset/*.md` file when a
+   consumer will notice the change — `npx changeset` writes one. A change that
+   ships nothing to consumers carries no changeset at all.
 2. **Merging it to `main`** runs `.github/workflows/release.yml`, which opens (or
    updates) a **`chore(release): version packages`** pull request: the version bump
    plus the rewritten `CHANGELOG.md`.

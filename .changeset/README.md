@@ -1,8 +1,8 @@
 # Changesets
 
-Every pull request declares the release it intends, as a file in this directory.
-`npx changeset` writes one for you; the **Changeset declared** check fails a pull
-request that has none.
+Every pull request that ships something a consumer will notice declares the
+release it intends, as a file in this directory. `npx changeset` writes one for
+you. A pull request that ships nothing a consumer meets carries none.
 
 Full narrative — the pipeline, and what a consumer has to do to receive a release
 — is in [CONTRIBUTING.md](../CONTRIBUTING.md#releasing). This file is the card you
@@ -17,7 +17,7 @@ This package is on **0.x**, where the ordinary semver reading does not apply.
 | Fixes a fault; renders differently but breaks no consumer                                                                    | `patch`   |
 | Adds a layout, a partial, a parameter, a class — additive                                                                    | `minor`   |
 | **Breaks a consumer** — removes or renames a partial, a parameter, a required front-matter key, or a class a consumer styles | `minor`   |
-| Ships nothing to consumers (CI, docs, repo housekeeping)                                                                     | _(empty)_ |
+| Ships nothing to consumers (CI, docs, repo housekeeping)                                                                     | no changeset |
 
 **A breaking change is a `minor`, not a `major`.** On 0.x a major bump means
 declaring 1.0, and that is the maintainer's call about the theme's stability —
@@ -32,15 +32,7 @@ request `breaking-change`, and name what a consumer must change.
 
 Repo housekeeping — a workflow, a lint script, `CONTRIBUTING.md` — reaches no
 consumer: the published tarball is `layouts`, `static`, `data`, `theme.toml` and
-`CHANGELOG.md`, nothing else. Declare that explicitly rather than skipping the
-step:
-
-```bash
-npx changeset add --empty
-```
-
-That writes a changeset with no package listed. It satisfies the check, consumes
-no version, and leaves a record that the omission was a decision.
+`CHANGELOG.md`, nothing else. Write no changeset for it.
 
 ## Why `privatePackages` is declared
 

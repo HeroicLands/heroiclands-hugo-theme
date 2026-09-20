@@ -41,7 +41,6 @@
     "lint:labels": "node utils/check-labels.mjs",
     "lint:banners": "node utils/check-banners.mjs",
     "changeset": "changeset",
-    "changeset:check": "changeset status --since=origin/main",
     "changeset:version": "changeset version && npm install --package-lock-only"
   },
   "devDependencies": {
