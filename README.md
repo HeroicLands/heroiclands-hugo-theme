@@ -34,12 +34,15 @@ The test is **whether a second consumer would need the same template**, not
 whether it looks reusable (issue #1454):
 
 - **Here:** the chrome and the generic page shapes — `baseof`, `_default/`,
-  `404.html`, the home layout, breadcrumbs, hero, TOC, related, and the infobox
-  renderer driven by the front matter every consumer's content carries.
+  `404.html`, the home layout, breadcrumbs, hero, TOC, related, the infobox
+  renderer driven by the front matter every consumer's content carries, and a
+  per-type section landing once a second consumer renders the same content
+  type (see "The catalog layouts" below — `being/`, `skill/`, `weapongear/`,
+  …).
 - **In the consumer:** templates that render one repository's content and
-  nothing else's — per-type section landings (`weapongear/`, `creature/`, …),
-  the partials those landings share, a site-specific home page, and any data
-  file describing that repository's own material.
+  nothing else's — a section landing for a type only that repository
+  publishes, a site-specific home page, and any data file describing that
+  repository's own material.
 
 A consumer overriding a template that is generic is the signal it belongs
 here; a template here that only one consumer's content can satisfy is the
@@ -412,8 +415,8 @@ listSubType: rules
   section asked first.
 - The query is **site-wide**. That is the point: it asks what a page *is*, not
   where its file sits, so it is indifferent to how the build lays the tree out.
-  It is the same query a consumer's own catalog layouts already run, which is why
-  those layouts were never affected by flat emission.
+  It is the same query the theme's own catalog layouts already run (see below),
+  which is why those layouts were never affected by flat emission.
 - Deliberately **not** Hugo's own `type:`. On an `_index.md` that key selects the
   template, so `type: doc` on a section landing would send it to
   `layouts/doc/list.html` instead of the default list layout.
@@ -424,6 +427,88 @@ listSubType: rules
   collections carry Hugo's default page order.
 - The gap-filler applies as usual. A landing with an authored body lists only
   the members that body does not reach, under "Orphaned Pages".
+
+## The catalog layouts
+
+Eleven content types get a purpose-built section landing instead of the
+generic list: `affliction`, `armorgear`, `attribute`, `being`, `containergear`,
+`miscgear`, `mysticalability`, `projectilegear`, `skill`, `trauma`,
+`weapongear`. Each groups its pages by `sohl.kbcat` (or, for the gear types
+with no meaningful category, a single flat table) and renders type-specific
+columns — durability, weight and value for gear; the attribute scores a being
+actually carries for `being`. A twelfth layout, `knowledgebase/list.html`,
+renders a consumer's top-level knowledgebase landing.
+
+**Selected by `type`, at whatever depth a consumer's sections sit.** A
+section's Hugo lookup path follows its physical nesting: a consumer that
+mounts its whole content tree under one section (`/sohl/kb/being/`) needs the
+layout at `layouts/kb/being/list.html`; a consumer whose sections sit at the
+package root (`/kethira/being/`) needs it at `layouts/being/list.html`. The
+theme ships both for each of the eleven types — a thin `list.html` at each
+path, delegating to one shared `catalog-body-<type>.html` partial — so a
+consumer's own mount depth decides which one Hugo finds; neither file needs
+touching by a consumer that has either shape. A consumer mounting at a third
+depth needs its own thin wrapper calling the same partial.
+
+**`knowledgebase/list.html`** is selected by an explicit `type: knowledgebase`
+on a consumer's `site.landing` front matter (never by section path), so it
+needs only the one copy. Its card grid — developer docs, user guide, rules,
+and a card per catalog type — is hand-written to the shape a full
+knowledgebase publishes; a consumer publishing a different set of sections
+wants its own landing instead.
+
+**Required front matter**, read by the catalog layouts and their partials:
+
+- **`type`** — every catalog layout queries `site.RegularPages` by this key
+  (`affliction`, `being`, `skill`, …); a page missing it is invisible to every
+  catalog layout, the same as it is to `_default/list.html`'s `listType`.
+- **`shortcode`**, **`package`** — shown in every table and list row. Absent,
+  the cell renders empty rather than omitting the row.
+- **`sohl.kbcat`** — the category a page groups under. A type whose pages
+  carry it for some pages and not others still lists every page: those with no
+  `sohl.kbcat` at all (Hugo's `GroupByParam` otherwise drops a page missing the
+  parameter, which would silently empty the whole catalog for a consumer whose
+  notes carry no category) are collected into one trailing group titled from
+  the content type itself.
+- **Gear columns** (`armorgear`, `containergear`, `miscgear`, `projectilegear`,
+  `weapongear`) — `sohl.durability`, `sohl.weight`, `sohl.value`, plus each
+  type's own fields (`sohl.armorType`, `sohl.protection.*`, `sohl.heft`,
+  `sohl.maxCapacity`, …). A note carrying none of them renders those cells
+  empty; the name, shortcode and package columns still list it.
+- **`being`** — `sohl.attributes` (a map of attribute code to score) drives
+  which attribute columns appear at all: the column set is derived from what
+  the group's beings actually carry, so a being carrying none renders a table
+  with no attribute columns rather than a wall of empty cells. `social`
+  (`occupation`, `class`) likewise appears only when some being in the group
+  carries it.
+- **`attribute`** — only `attribute`-typed pages give `attr-skill-body.html`
+  (shared by the `attribute` and `skill` layouts) its Attributes heading; a
+  consumer with no `attribute` pages of its own gets no Attributes section at
+  all, rather than one with nothing under it.
+
+### The six partials
+
+- **`kbcat-groups.html`** — groups a content type's pages by `sohl.kbcat` into
+  an ordered slice of `{ cat, title, pages }`. Params: `type` (required),
+  `titles` (dict, kbcat → display title), `order` (slice, kbcat values to emit
+  first), `extras` (bool — append any kbcat present in the data but absent
+  from `order`, alphabetically, and collect every page carrying no `sohl.kbcat`
+  into one final group titled from `type`).
+- **`gear-row-cells.html`** — the six `<td>` cells every gear table opens with:
+  linked name, shortcode, package, `sohl.durability`, `sohl.weight`,
+  `sohl.value`. Call with the page as context; a caller adds its own
+  type-specific columns after.
+- **`attr-skill-body.html`** — the combined Attributes + Skills body shared by
+  the `attribute` and `skill` layouts. No params; reads `site.RegularPages` by
+  `Type` directly.
+- **`actor-attrs.html`** — the nine actor attribute `<td>` cells (STR through
+  CRE) from `sohl.attributes`, in a fixed column order. Call with the page as
+  context.
+- **`actor-movement.html`** — an actor's movement rate in feet per round, from
+  `sohl.movementProfiles` and `sohl.currentMoveMedium`. Call with the page as
+  context; returns `""` when the actor carries no movement profiles.
+- **`landing-cards.html`** — the CSS for `knowledgebase/list.html`'s card
+  grid. No params; emits a `<style>` block only.
 
 ## The infobox
 

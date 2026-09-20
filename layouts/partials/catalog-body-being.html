@@ -1,0 +1,103 @@
+{{- /*
+  Being catalog body — hero, breadcrumbs, the authored body, and one catalog
+  table per `sohl.kbcat` (archetypes, NPCs, animals, …), grouped through
+  `kbcat-groups.html` the same way every other multi-category catalog is.
+  Shared by the nested and top-level `being` list layouts.
+
+  Attribute columns are DERIVED, never hardcoded: a being carries only the
+  attributes that apply to it, and the sets genuinely differ — an animal has
+  Scent where a person has Dexterity, and only people carry the social
+  attributes (Comeliness, Empathy, Eloquence, Voice, Morality). A fixed
+  nine-column block would show blank cells for attributes a being does not
+  have while silently omitting ones it does.
+
+  So the column ORDER comes from the `attribute` pages themselves, sorted by
+  their `sort` param, and each group renders only the columns its own beings
+  actually populate. A consumer with no `attribute` pages at all, or whose
+  beings carry no `sohl.attributes` block, simply renders no attribute
+  columns — the table still lists every being by name, shortcode and package.
+*/ -}}
+{{ partial "hero-banner.html" . }}
+{{ partial "breadcrumbs.html" . }}
+
+<article class="single">
+  <div class="single-content">
+    {{ if .Content }}<div class="single-body">{{ .Content }}</div>{{ end }}
+
+    {{- $titles := dict "archetype" "Archetypes" "npc" "NPCs" "animal" "Animals" -}}
+    {{- $order := slice "archetype" "npc" "animal" -}}
+    {{- $groups := partial "kbcat-groups.html" (dict "type" "being" "titles" $titles "order" $order "extras" true) -}}
+
+    {{- $attrOrder := slice -}}
+    {{- $attrLink := dict -}}
+    {{- range $ap := sort (where site.RegularPages "Type" "attribute") "Params.sort" -}}
+      {{- with $ap.Params.shortcode -}}
+        {{- $attrOrder = $attrOrder | append . -}}
+        {{- $attrLink = merge $attrLink (dict . $ap.RelPermalink) -}}
+      {{- end -}}
+    {{- end -}}
+
+    {{- range $groups }}
+    {{- $pages := .pages -}}
+
+    {{- $present := slice -}}
+    {{- range $pages -}}
+      {{- range $code, $score := (.Params.sohl.attributes | default dict) -}}
+        {{- if not (in $present $code) -}}{{- $present = $present | append $code -}}{{- end -}}
+      {{- end -}}
+    {{- end -}}
+    {{- $cols := slice -}}
+    {{- range $code := $attrOrder -}}
+      {{- if in $present $code -}}{{- $cols = $cols | append $code -}}{{- end -}}
+    {{- end -}}
+    {{- range $code := sort $present -}}
+      {{- if not (in $attrOrder $code) -}}{{- $cols = $cols | append $code -}}{{- end -}}
+    {{- end -}}
+
+    {{- $hasSocial := false -}}
+    {{- range $pages -}}
+      {{- with .Params.social -}}
+        {{- if or .occupation .class -}}{{- $hasSocial = true -}}{{- end -}}
+      {{- end -}}
+    {{- end -}}
+
+    <section class="kbcat-group">
+      <h2 id="kbcat-{{ .cat }}">{{ .title }}</h2>
+      <div class="kbcat-table-wrap" style="overflow-x: auto;">
+        <table class="kbcat-table">
+          <thead>
+            <tr>
+              <th>Name</th><th>Shortcode</th><th>Package</th>
+              {{- range $code := $cols }}
+              <th>{{ with index $attrLink $code }}<a href="{{ . }}">{{ upper $code }}</a>{{ else }}{{ upper $code }}{{ end }}</th>
+              {{- end }}
+              <th>Weight (lbs)</th><th>Body Scale</th><th>Movement (ft/round)</th>
+              {{- if $hasSocial }}<th>Occupation</th><th>Class</th>{{ end }}
+            </tr>
+          </thead>
+          <tbody>
+            {{- range $pages }}
+            {{- $attrs := .Params.sohl.attributes | default dict }}
+            <tr>
+              <td><a href="{{ .RelPermalink }}">{{ .Title }}</a></td>
+              <td>{{ .Params.shortcode }}</td>
+              <td>{{ .Params.package }}</td>
+              {{- range $code := $cols }}
+              <td>{{ index $attrs $code }}</td>
+              {{- end }}
+              <td>{{ .Params.sohl.body.weight.base }}</td>
+              <td>{{ .Params.sohl.body.bodyScaleBase }}</td>
+              <td>{{ partial "actor-movement.html" . }}</td>
+              {{- if $hasSocial }}
+              <td>{{ with .Params.social }}{{ .occupation }}{{ end }}</td>
+              <td>{{ with .Params.social }}{{ .class }}{{ end }}</td>
+              {{- end }}
+            </tr>
+            {{- end }}
+          </tbody>
+        </table>
+      </div>
+    </section>
+    {{- end }}
+  </div>
+</article>
