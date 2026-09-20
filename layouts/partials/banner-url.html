@@ -1,11 +1,9 @@
 {{- /*
   Resolve a `banner:` value to a URL, or to "" when there is none.
 
-  Split out of `hero-banner.html` (issue #41) because a hero band is no longer
-  the only thing that shows a banner: a derived landing card shows its
-  section's. Two copies of this would drift, and the one that drifted would
-  fail the way issue #36 already failed once — silently, behind a dead URL — so
-  there is one implementation and the hero band is its first caller.
+  Split out of `hero-banner.html` (issue #41): a single implementation is what
+  keeps a second caller from drifting the way issue #36 already failed once —
+  silently, behind a dead URL.
 
   Resolution, in order:
     1. `banner` — `none` (or `false`) declines an image and returns "". A full
