@@ -238,6 +238,35 @@ page's catalog key, so reading through the afflictions does not surface a
 skill; a mount holding a single catalog is untouched, because `.PrevInSection`
 already walks exactly that catalog there.
 
+## A section landing
+
+`_default/list.html` renders whatever a consumer still gives Hugo's `section`,
+`taxonomy` or `term` kinds to render — a hand-curated landing at a real
+subdirectory, and Hugo's own tag pages. A package-build consumer disables all
+three (`disableKinds`), so this layout never runs for one; a site that keeps
+them enabled still needs a landing, and this is it.
+
+It opens with the hero and any authored body, then auto-lists the section's
+members (`.Pages`) as a gap-filler: a member the body already links, directly
+or transitively, is not repeated, and the rest appear under "Orphaned Pages"
+when the body links some of them, or plainly when it links none. A tag's term
+page lists the pages carrying it; the tag index itself lists every tag with
+its page count.
+
+```yaml
+---
+# content/projects/_index.md — a hand-curated landing, no `type:` at all
+title: Projects
+description: Foundry VTT systems, modules, and reference content …
+---
+Each section below has its own landing page.
+
+# [Song of Heroic Lands](/projects/song-of-heroic-lands/)
+…
+```
+
+A row is a linked title and, when the page carries one, its description.
+
 ## The infobox
 
 A page's summary panels are **declared in its front matter and drawn by one
