@@ -35,14 +35,10 @@ whether it looks reusable (issue #1454):
 
 - **Here:** the chrome and the generic page shapes — `baseof`, `_default/`,
   `404.html`, the home layout, breadcrumbs, hero, TOC, related, the infobox
-  renderer driven by the front matter every consumer's content carries, and a
-  per-type section landing once a second consumer renders the same content
-  type (see "The catalog layouts" below — `being/`, `skill/`, `weapongear/`,
-  …).
+  renderer driven by the front matter every consumer's content carries.
 - **In the consumer:** templates that render one repository's content and
-  nothing else's — a section landing for a type only that repository
-  publishes, a site-specific home page, and any data file describing that
-  repository's own material.
+  nothing else's — a site-specific home page, and any data file describing
+  that repository's own material.
 
 A consumer overriding a template that is generic is the signal it belongs
 here; a template here that only one consumer's content can satisfy is the
@@ -145,13 +141,6 @@ baseURL = "https://example.org/"        # or "https://example.org/sohl/"
       image = "images/banners/rules.webp"
       text  = "…"
 
-  # Listing rows (partials/catalog-rows.html). A reference catalog shows
-  # "Name (shortcode)" so a reader can map a page to the identifier the
-  # system uses for it; a narrative site leaves this unset and gets plain
-  # titles, which is what a tag listing should show.
-  [params.list]
-    shortcodes = true
-
   # The "page not found" page (layouts/404.html). Hugo renders it to
   # public/404.html, which a static host serves — with a real HTTP 404 — for
   # any unpublished path. Omit it and the page still renders, with generic
@@ -181,334 +170,102 @@ baseURL = "https://example.org/"        # or "https://example.org/sohl/"
 of `.home-featured`, because they are that CSS grid's items — each is placed by
 its modifier class.
 
-## A package landing page
+## The home page
 
-Every published package has a landing at its own prefix —
-`https://www.heroiclands.org/<package>/` — and they all do the same job: say
-what the package is, say how to install it, and route the reader onward. Built
-independently they would not look like siblings, so the shape lives here
-(`layouts/partials/landing.html`) and a package supplies only its own words and
-addresses.
+A package's home page is `content/_index.md`, mounted at the package's own
+prefix — `https://www.heroiclands.org/<package>/`. `layouts/index.html`
+selects between two shapes by what it carries.
 
-It is **front matter, not site configuration**, because a landing is a page:
-one file, `content/_index.md`, is the whole of a package's landing.
-
-A landing need not be the home page. A package that mounts its content tree one
-level down publishes a second front page there — a knowledgebase at
-`/<package>/kb/`, say — and that page wants the same shape. Declaring
-`type: landing` on that section's own `_index.md` selects
-`layouts/landing/list.html`, which renders the identical contract. Typing it is
-what keeps the template off every section below the mount: Hugo's lookup walks
-up a page's path, so an untyped template at the mount would serve every section
-under it, and each would render the mount's front page.
+**`type: homepage`** renders the page through the same structure a note gets
+from `_default/single.html` — the hero from its `banner:`, then its body —
+sharing the markup through `partials/page-body.html` so a homepage and a page
+read as one family:
 
 ```yaml
 ---
-# The layout is selected by either of these: `type: homepage` is what a
-# package's generated `_index.md` declares, and the presence of `landing`
-# selects it too, so a page that has one need not also declare the other.
 type: homepage
 title: Song of Heroic Lands # hero heading
 description: A classless, skill-based fantasy system … # hero standfirst
 
-# The hero image. This is the same `banner:` every other page in this theme
-# uses, resolved by `partials/hero-banner.html` in the documented order and
-# through `params.cdnBaseURL` like every other image — see "The hero banner"
-# below. A landing with no `banner:` gets `images/banners/default.webp`, and
-# `banner: none` declines a hero image entirely; neither can 404.
+# The hero image. The same `banner:` every other page in this theme uses,
+# resolved by `partials/hero-banner.html` in the documented order and through
+# `params.cdnBaseURL` — see "The hero banner" below. With none set, the
+# subtype default lands on `images/banners/homepage.webp`, since the subtype
+# default is keyed on the page's `type`. `banner: none` declines a hero image
+# entirely.
 banner: brand/sohl-banner.webp
+---
+Everything published for the system lives under this address …
+```
 
-landing:
-  # Opening paragraph. Optional, like everything below it.
-  lead: >-
-    Everything published for the system lives under this address …
+Breadcrumbs render nothing on the home page, and it declares no `infoboxes:`,
+`related:`, `date:` or `tags:`, so those pieces of a page stay silent.
 
-  # How to install the package. Every field is optional; the block renders
-  # only if `install` is present at all.
-  install:
-    heading: Install it in Foundry
-    intro: In Foundry's setup screen, choose **Game Systems → Install System** …
-    url: https://github.com/…/releases/latest/download/system.json
-    note: Requires Foundry VTT v14. …
+**No `type` at all** — a site whose home page is a set of entry points into
+everything it publishes — renders the featured grid documented under
+`params.home` above, which is the shape every consumer had before adopting a
+`type: homepage` note.
 
-  # The cards. Two ways to fill them, and a package may use either, both, or
-  # neither — see "Authored cards, derived cards" below.
-  cards:
-    heading: Start where you are
-    source: sections # optional; one card per section of THIS page
-    banners: true # optional; give each derived card its section's `banner:`
-    exclude: [credits, macro] # optional; sections kept off this landing
-    groups: # optional; derived cards gathered under a heading
-      - heading: Gear
-        sections: [armorgear, weapongear]
-    items:
-      - title: At the table
-        url: kb/ # optional — makes the card's title a link
-        description: Running or playing in a game …
-        banner: banners/user-guide.webp # optional card image
-        links:
-          - title: User Guide
-            url: kb/user-guide/
-            note: playing with it, sheet by sheet # optional trailing gloss
+## A page
 
-  # Standing notices — a licence carve-out, an attribution. Each renders as a
-  # full-measure block rather than a card, because it is addressed to every
-  # reader rather than being one route among several.
-  notices:
-    - title: Licence
-      body: Unofficial fan material, published under …
+`_default/single.html` renders every other page: the hero, breadcrumbs
+(`Home › {Title}`), the infobox rail (see "The infobox" below), the body, any
+`related:` block, and prev/next links through the page's own catalog.
 
-  # Closing paragraph, centred.
-  closing: The whole reference is browsable from the [knowledgebase](kb/) …
+```yaml
+---
+title: Brànwâal Dôrgaar
+type: being # the page's catalog — see "Prev/next" below
+banner: being/dorgaar.webp
+date: 2024-03-01 # optional; shown in the page meta line
+tags: [archetype, mercantyl] # optional; shown in the page meta line
 ---
 ```
 
-### Authored cards, derived cards
+- **`type`** is the page's catalog key, unless it is `doc` — prose rather than
+  a catalog of its own — in which case the key is `subType` (what
+  package-build compiles from a note's classification) or, failing that,
+  `category` (what a documentation tree mounted from a repository directory
+  carries). A page with no `type` has no catalog.
+- **`date`**, **`tags`** — each optional and shown only when present, in a
+  meta line above the body. A tag links to `tags/<tag>/`.
 
-A package's cards can be **authored** (`items`) or **derived**
-(`source: sections`), and neither is required, because the packages genuinely
-differ:
-
-- A **system** package groups its cards editorially — "At the table", "What it
-  ships with", "Building on it" — and links out to surfaces that are not
-  sections at all, such as generated API documentation. Only an authored list
-  can express that, so `items` exists.
-- A **content** package's landing is its section index: one card per section,
-  each with the section's own description. Writing those by hand would mean
-  re-writing them every time the content build emits or retires a section, so
-  `source: "sections"` builds them from the sections of the page being
-  rendered, in `.ByTitle` order.
-- A **carve-out** package publishes exactly one page and may not describe its
-  content, so it supplies a lead, an install block and a notice, and no cards
-  whatsoever. Omitting `cards` renders no heading, no grid and no gap.
-
-`items` and `source` compose: authored cards render first, derived ones after,
-so a content package can lead with a hand-written card and let the rest follow
-from its sections.
-
-**Which sections are derived.** The **rendering page's own** sections. On a home
-page that is the site's top-level sections — Hugo defines one as the other — so
-a package landing at a package's prefix derives exactly the list it always did.
-A landing one level down is where the two part company: a package that mounts
-its tree at `kb/` has a single top-level section, and deriving from the site
-would render one card pointing at the page the reader is already on. Reading the
-page's own sections is the general case, and it is why a nested landing works at
-all.
-
-**Card images.** `banners: true` gives every derived card its section's own
-`banner:` as a card image, resolved exactly the way a hero band's is — the same
-`none`, the same `params.cdnBaseURL` indirection, the same declared-inventory
-guard (see "The hero banner"). A section with no banner renders the text card it
-renders without the option. It is **opt-in** rather than automatic because a
-section's banner is drawn for that section's hero: a landing that has always
-listed its sections as text cards would otherwise silently become a wall of
-imagery on the day this theme was upgraded. An authored card carries `banner:`
-of its own and needs no option — writing it is the opt-in.
-
-**Curation.** `exclude` is a list of section names kept off the landing — the
-section's own directory name, which is the last segment of its address and the
-name the consuming build knows it by. It is stated as an *exclusion* rather than
-as a list of what to include so that deriving keeps its promise: a section
-nobody has said anything about still appears, so a new content type is on the
-landing the day it exists rather than the day somebody remembers to add it.
-
-**Grouping.** `groups` gathers derived cards under editorial headings, each
-group naming the sections it takes:
-
-```yaml
-groups:
-  - heading: Actors
-    sections: [being]
-  - heading: Gear
-    sections: [armorgear, containergear, miscgear, projectilegear, weapongear]
-```
-
-Grouping is declared **here, on the landing**, and not on each section, because
-it is editorial rather than structural: every card on such a page is a sibling
-section under one mount, so nothing in the hierarchy distinguishes "Actors" from
-"Gear", and the same section could be filed differently by a different landing.
-Keeping it in one file also means the arrangement can be read as a whole.
-
-The bands render in a fixed order — authored `items`, then the groups in the
-order they are declared, then everything derived that no group named. That last
-row is the same gap-filling promise `_default/list.html` makes about orphaned
-pages: a section this landing has never been told about is visible rather than
-lost, and can be filed into a group later. Within a group the order is the
-`.ByTitle` order the derivation already produced, so grouping needs no ordering
-mechanism of its own.
-
-A grouped card's title is an `<h4>`, sitting under its group's `<h3>` heading;
-an ungrouped one stays an `<h3>`. The document outline stays ordered either way,
-and a landing with no groups renders exactly the markup it did before.
-
-### How the values are treated
-
-- **Every field is optional and every section is guarded.** A missing section
-  renders nothing at all — not an empty heading, not a blank band. This is the
-  theme's standing silent-disappear convention, and it is what lets one layout
-  serve a landing with three rich cards and one with none.
-- **Prose fields are inline markdown.** `lead`, `closing`, `install.intro`,
-  `install.note`, a card's `description` and a link's `note` are rendered with
-  `.RenderString`, so links and emphasis work in all of them and none can
-  inject a block wrapper into the layout. A package with more to say than the
-  contract carries writes it as the page body, below the lead.
-- **`install.url` is not markdown.** It is set as text to be read and copied.
-- **Link addresses resolve against the site.** A `url` that is already absolute
-  is used as-is; anything else is resolved with `relURL` by
-  `partials/site-url.html`, so a package served under a path prefix writes
-  `kb/rules/` and gets `/sohl/kb/rules/` without naming the prefix. A card or a
-  link may carry **`href`** instead, for an address that is already resolved and
-  must be used verbatim — which is what `source: "sections"` fills in, since a
-  section's permalink already carries the prefix.
-- **A relative link inside a prose field is emitted as written**, and the
-  browser resolves it against the landing's own address — which is the package
-  root. So `[the rules](kb/rules/)` in a `lead` or a `closing` is correct too,
-  and equally free of the prefix.
-- **The classes are the theme's** — `.lead`, `.install`, `.doors`, `.door`,
-  `.landing-notice` and the rest live in `static/css/style.css`, expressed in
-  the palette tokens. A landing needs no CSS of its own, and should ship none.
+**Prev/next.** `.PrevInSection` / `.NextInSection` walk every page under the
+site's content mount, since `@heroiclands/package-build` emits every note
+flat there rather than filing it into a directory named for its catalog. A
+mount holding more than one catalog narrows the walk to the pages sharing this
+page's catalog key, so reading through the afflictions does not surface a
+skill; a mount holding a single catalog is untouched, because `.PrevInSection`
+already walks exactly that catalog there.
 
 ## A section landing
 
-A section's landing page — `layouts/_default/list.html` — opens with the hero
-and any authored body, then lists the section's members. Normally those are its
-child pages, which is what `.Pages` gives.
+`_default/list.html` renders whatever a consumer still gives Hugo's `section`,
+`taxonomy` or `term` kinds to render — a hand-curated landing at a real
+subdirectory, and Hugo's own tag pages. A package-build consumer disables all
+three (`disableKinds`), so this layout never runs for one; a site that keeps
+them enabled still needs a landing, and this is it.
 
-**A build may not file them there.** `@heroiclands/package-build` emits every
-content page *flat* under the site's content mount — `<mount>/being-orc.md`,
-stating its own `url:` — because a section appears in no address, so the
-directory only ever existed to satisfy Hugo's idea of what a section is. No
-published address moves; only the paths do. The section directory then holds
-nothing but its own `_index.md`, and `.Pages` is empty.
-
-The theme cannot infer what is missing, and **cannot key it on the section's
-name**: a section name is a published URL its owner chose, and the two are
-deliberately free to differ — one knowledgebase publishes `/kb/user-guide/` for
-pages whose genre is spelled `userguide`, because a genre is an address segment
-and a segment carries no hyphen. So the section says what it lists:
+It opens with the hero and any authored body, then auto-lists the section's
+members (`.Pages`) as a gap-filler: a member the body already links, directly
+or transitively, is not repeated, and the rest appear under "Orphaned Pages"
+when the body links some of them, or plainly when it links none. A tag's term
+page lists the pages carrying it; the tag index itself lists every tag with
+its page count.
 
 ```yaml
 ---
-# content/being/_index.md — every page whose type is `being`
-title: Beings
-banner: banners/being.webp
-listType: being
+# content/projects/_index.md — a hand-curated landing, no `type:` at all
+title: Projects
+description: Foundry VTT systems, modules, and reference content …
 ---
+Each section below has its own landing page.
+
+# [Song of Heroic Lands](/projects/song-of-heroic-lands/)
+…
 ```
 
-```yaml
----
-# content/rules/_index.md — one genre of a shared type
-title: Rules
-listType: doc
-listSubType: rules
----
-```
-
-- **`listType`** is matched against the page's `Type`, which is the `type:` a
-  build writes on every content page.
-- **`listSubType`** is optional, and meaningful only alongside `listType`. It is
-  matched against the page's `subType`. One type can hold several genres —
-  `rules`, `userguide` and `reference` are all `type: doc`, and a documentation
-  tree mounted from a repository directory is `type: doc` carrying no `subType`
-  at all — so `listType` alone would sweep all four together into whichever
-  section asked first.
-- The query is **site-wide**. That is the point: it asks what a page *is*, not
-  where its file sits, so it is indifferent to how the build lays the tree out.
-  It is the same query the theme's own catalog layouts already run (see below),
-  which is why those layouts were never affected by flat emission.
-- Deliberately **not** Hugo's own `type:`. On an `_index.md` that key selects the
-  template, so `type: doc` on a section landing would send it to
-  `layouts/doc/list.html` instead of the default list layout.
-- **It is a fallback, not a replacement.** The keys are read only when `.Pages`
-  is empty, so a consumer that still files pages into section directories is
-  unaffected, and a landing that declares nothing renders exactly as before —
-  "Nothing here yet." included. Ordering is unchanged either way: both
-  collections carry Hugo's default page order.
-- The gap-filler applies as usual. A landing with an authored body lists only
-  the members that body does not reach, under "Orphaned Pages".
-
-## The catalog layouts
-
-Eleven content types get a purpose-built section landing instead of the
-generic list: `affliction`, `armorgear`, `attribute`, `being`, `containergear`,
-`miscgear`, `mysticalability`, `projectilegear`, `skill`, `trauma`,
-`weapongear`. Each groups its pages by `sohl.kbcat` (or, for the gear types
-with no meaningful category, a single flat table) and renders type-specific
-columns — durability, weight and value for gear; the attribute scores a being
-actually carries for `being`. A twelfth layout, `knowledgebase/list.html`,
-renders a consumer's top-level knowledgebase landing.
-
-**Selected by `type`, at whatever depth a consumer's sections sit.** A
-section's Hugo lookup path follows its physical nesting: a consumer that
-mounts its whole content tree under one section (`/sohl/kb/being/`) needs the
-layout at `layouts/kb/being/list.html`; a consumer whose sections sit at the
-package root (`/kethira/being/`) needs it at `layouts/being/list.html`. The
-theme ships both for each of the eleven types — a thin `list.html` at each
-path, delegating to one shared `catalog-body-<type>.html` partial — so a
-consumer's own mount depth decides which one Hugo finds; neither file needs
-touching by a consumer that has either shape. A consumer mounting at a third
-depth needs its own thin wrapper calling the same partial.
-
-**`knowledgebase/list.html`** is selected by an explicit `type: knowledgebase`
-on a consumer's `site.landing` front matter (never by section path), so it
-needs only the one copy. Its card grid — developer docs, user guide, rules,
-and a card per catalog type — is hand-written to the shape a full
-knowledgebase publishes; a consumer publishing a different set of sections
-wants its own landing instead.
-
-**Required front matter**, read by the catalog layouts and their partials:
-
-- **`type`** — every catalog layout queries `site.RegularPages` by this key
-  (`affliction`, `being`, `skill`, …); a page missing it is invisible to every
-  catalog layout, the same as it is to `_default/list.html`'s `listType`.
-- **`shortcode`**, **`package`** — shown in every table and list row. Absent,
-  the cell renders empty rather than omitting the row.
-- **`sohl.kbcat`** — the category a page groups under. A type whose pages
-  carry it for some pages and not others still lists every page: those with no
-  `sohl.kbcat` at all (Hugo's `GroupByParam` otherwise drops a page missing the
-  parameter, which would silently empty the whole catalog for a consumer whose
-  notes carry no category) are collected into one trailing group titled from
-  the content type itself.
-- **Gear columns** (`armorgear`, `containergear`, `miscgear`, `projectilegear`,
-  `weapongear`) — `sohl.durability`, `sohl.weight`, `sohl.value`, plus each
-  type's own fields (`sohl.armorType`, `sohl.protection.*`, `sohl.heft`,
-  `sohl.maxCapacity`, …). A note carrying none of them renders those cells
-  empty; the name, shortcode and package columns still list it.
-- **`being`** — `sohl.attributes` (a map of attribute code to score) drives
-  which attribute columns appear at all: the column set is derived from what
-  the group's beings actually carry, so a being carrying none renders a table
-  with no attribute columns rather than a wall of empty cells. `social`
-  (`occupation`, `class`) likewise appears only when some being in the group
-  carries it.
-- **`attribute`** — only `attribute`-typed pages give `attr-skill-body.html`
-  (shared by the `attribute` and `skill` layouts) its Attributes heading; a
-  consumer with no `attribute` pages of its own gets no Attributes section at
-  all, rather than one with nothing under it.
-
-### The six partials
-
-- **`kbcat-groups.html`** — groups a content type's pages by `sohl.kbcat` into
-  an ordered slice of `{ cat, title, pages }`. Params: `type` (required),
-  `titles` (dict, kbcat → display title), `order` (slice, kbcat values to emit
-  first), `extras` (bool — append any kbcat present in the data but absent
-  from `order`, alphabetically, and collect every page carrying no `sohl.kbcat`
-  into one final group titled from `type`).
-- **`gear-row-cells.html`** — the six `<td>` cells every gear table opens with:
-  linked name, shortcode, package, `sohl.durability`, `sohl.weight`,
-  `sohl.value`. Call with the page as context; a caller adds its own
-  type-specific columns after.
-- **`attr-skill-body.html`** — the combined Attributes + Skills body shared by
-  the `attribute` and `skill` layouts. No params; reads `site.RegularPages` by
-  `Type` directly.
-- **`actor-attrs.html`** — the nine actor attribute `<td>` cells (STR through
-  CRE) from `sohl.attributes`, in a fixed column order. Call with the page as
-  context.
-- **`actor-movement.html`** — an actor's movement rate in feet per round, from
-  `sohl.movementProfiles` and `sohl.currentMoveMedium`. Call with the page as
-  context; returns `""` when the actor carries no movement profiles.
-- **`landing-cards.html`** — the CSS for `knowledgebase/list.html`'s card
-  grid. No params; emits a `<style>` block only.
+A row is a linked title and, when the page carries one, its description.
 
 ## The infobox
 
@@ -636,10 +393,8 @@ pass through untouched, because the theme has no inventory for either and must
 not second-guess an address it cannot know about.
 
 **One resolver.** The order above lives in `partials/banner-url.html`, which
-returns a URL or an empty string, and `hero-banner.html` is one of its callers;
-a derived landing card is the other. The difference between them is step 2: a
-hero band asks for the subtype default, a card does not, so a section with no
-banner of its own stays a text card.
+returns a URL or an empty string; `hero-banner.html` calls it with the page's
+subtype, for step 2.
 
 **Keeping the inventory honest.** `npm run lint:banners`
 (`utils/check-banners.mjs`, part of `npm run lint`) fetches every declared name

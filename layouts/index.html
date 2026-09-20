@@ -1,16 +1,19 @@
 {{- /*
   Home layout. Two shapes share it, chosen by what the home page carries.
 
-  **A package landing** — the entry point to one published package, at its own
-  prefix (/sohl/, /thalorna/, /kethira/, …). Selected when the home page
-  declares `type: homepage` or carries a `landing` map in its front matter, and
-  rendered by `partials/landing.html`, which documents the whole front-matter
-  contract. Six packages publish one of these (issue #33), so the shape lives
-  here rather than being hand-built six times.
+  **A package homepage** — the entry point to one published package, at its
+  own prefix (/sohl/, /thalorna/, /kethira/, …), mounted as the package's
+  `_index.md` and selected when it declares `type: homepage`. It renders
+  through the same structure `_default/single.html` gives a note — the hero
+  from its `banner`, then its body — through the shared `page-body.html`
+  partial, so a homepage and a page look like one family. A package supplies
+  only its own title, description, banner and body; the theme owns the
+  arrangement.
 
   **The featured grid** — a site whose home page is a set of entry points into
   everything it publishes. This is the older shape and stays the default, so a
-  consumer that has not adopted the landing keeps rendering exactly as before.
+  consumer that has not adopted the homepage note keeps rendering exactly as
+  before.
 
   The theme owns the arrangement; the consuming site owns every address and
   every word. The grid reads them from `params.home`:
@@ -32,8 +35,10 @@
   modifier class.
 */ -}}
 {{ define "main" }}
-{{- if or (eq (.Params.type | default "") "homepage") .Params.landing -}}
-{{- partial "landing.html" . -}}
+{{- if eq (.Params.type | default "") "homepage" -}}
+{{- partial "hero-banner.html" . -}}
+{{- partial "breadcrumbs.html" . -}}
+{{- partial "page-body.html" . -}}
 {{- else -}}
 {{- with .Site.Params.home }}
 <section class="hero hero-with-image"{{ with .heroimage }} style="background-image: url('{{ partial "cdn-url.html" (dict "site" $.Site "path" .) }}');"{{ end }}>
