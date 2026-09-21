@@ -13,7 +13,10 @@
     - Merge both directions into a single deduped pool (direction
       doesn't matter to a reader — a connection is a connection).
     - Group by the referenced page's `type`.
-    - Emit one line per type: "Label: link • link • link".
+    - Emit one labelled group per type, its entries laid out as a
+      CSS grid (`repeat(auto-fill, minmax(14em, 1fr))`) so a wide
+      screen shows two or three columns and a narrow one falls back
+      to a single column with no media query.
     - The whole block is wrapped in a bordered, tinted card so it
       visually sets off the end of the article.
 
@@ -104,18 +107,15 @@
 {{- if $rows -}}
 <section class="related" aria-labelledby="related-heading">
   <h2 id="related-heading" class="related-heading">Related</h2>
-  <dl class="related-rows">
-    {{- range $rows }}
-    <div class="related-row">
-      <dt class="related-row-label">{{ .label }}</dt>
-      <dd class="related-row-links">
-        {{- range $i, $ref := .refs -}}
-          {{- if $i -}}<span class="related-sep" aria-hidden="true"> • </span>{{- end -}}
-          <a href="{{ $ref.url }}">{{ $ref.title }}</a>
-        {{- end -}}
-      </dd>
-    </div>
-    {{- end }}
-  </dl>
+  {{- range $rows }}
+  <div class="related-group">
+    <h3 class="related-group-label">{{ .label }}</h3>
+    <ul class="related-group-grid">
+      {{- range .refs }}
+      <li><a href="{{ .url }}">{{ .title }}</a></li>
+      {{- end }}
+    </ul>
+  </div>
+  {{- end }}
 </section>
 {{ end -}}
