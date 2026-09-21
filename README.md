@@ -362,6 +362,37 @@ its own words where it did not. A whole `number` is set with digit grouping.
 A page whose front matter declares no `infoboxes:` renders no rail, so a
 consumer whose content does not carry them is unaffected.
 
+## The related card
+
+`partials/related.html` renders a bordered "Related" card below the body,
+listing the pages connected to this one. `@heroiclands/package-build` emits
+the front matter on every content page.
+
+```yaml
+---
+related:
+  backlinks: [{ title: …, url: …, type: … }] # pages that link here
+  mentions: [{ title: …, url: …, type: … }] # pages this page links to
+---
+```
+
+Both directions are merged into a single pool, deduped by `url`, and grouped
+by the referenced page's `type`. Each group is a labelled block, its entries a
+CSS grid (`repeat(auto-fill, minmax(14em, 1fr))`) that reflows its own column
+count from the available width with no media query — two or three columns on a
+desktop, one on a phone. An entry is the linked page title.
+
+| class                 | drawn as                                    |
+| ---------------------- | -------------------------------------------- |
+| `.related`             | the card                                     |
+| `.related-heading`     | the "Related" heading                        |
+| `.related-group`       | one type's block, label and grid together    |
+| `.related-group-label` | the type label heading a group               |
+| `.related-group-grid`  | the grid of linked entries                   |
+
+A page whose `related` carries neither list, or whose two lists are both
+empty, renders no card at all.
+
 ## The hero banner
 
 Nearly every page in this theme opens with a hero band, and
