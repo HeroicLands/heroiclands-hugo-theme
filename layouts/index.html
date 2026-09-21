@@ -37,7 +37,6 @@
 {{ define "main" }}
 {{- if eq (.Params.type | default "") "homepage" -}}
 {{- partial "hero-banner.html" . -}}
-{{- partial "breadcrumbs.html" . -}}
 {{- partial "page-body.html" . -}}
 {{- else -}}
 {{- with .Site.Params.home }}

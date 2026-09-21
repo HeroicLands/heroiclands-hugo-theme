@@ -1353,55 +1353,7 @@ a.tag:hover {
   }
 }
 
-/* ---- Breadcrumbs ---- */
-
-.breadcrumbs {
-  max-width: var(--content-narrow);
-  margin: 0 auto;
-  padding: 1rem 2rem 0;
-  font-family: var(--font-body);
-  font-size: 0.88rem;
-  color: var(--text-muted);
-}
-
-.breadcrumbs ol {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 0.4rem;
-}
-
-.breadcrumbs li {
-  display: flex;
-  align-items: center;
-  gap: 0.4rem;
-}
-
-.breadcrumbs li + li::before {
-  content: "›";
-  color: var(--text-dim);
-  font-size: 1em;
-}
-
-.breadcrumbs a {
-  color: var(--text-muted);
-  text-decoration: none;
-  transition: color 0.15s ease;
-}
-
-.breadcrumbs a:hover {
-  color: var(--accent-hover);
-  text-decoration: underline;
-}
-
-.breadcrumbs [aria-current="page"] {
-  color: var(--text);
-}
-
-/* ---- Single Meta (date + tags under breadcrumbs) ---- */
+/* ---- Single Meta (date + tags) ---- */
 
 .single-meta {
   padding: 1rem 0 1.5rem;
