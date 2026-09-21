@@ -2323,10 +2323,11 @@ summary.info-sidebar-title::after {
 
 /* ---- Related section (bottom of article) ----
 
-   Rendered as a bordered, tinted card. Each row is one content type,
-   with its label on the left and the links flowed horizontally on
-   the right separated by a middle dot. The <dl>/<dt>/<dd> markup
-   keeps the label-to-values relationship semantic. */
+   Rendered as a bordered, tinted card. Each group is one content
+   type, headed by its label, with its entries laid out as a CSS
+   grid that reflows its own column count from the available width —
+   two or three columns on a desktop, one on a phone — with no
+   breakpoint needed. */
 
 .related {
   margin: 3rem 0 1rem;
@@ -2347,66 +2348,47 @@ summary.info-sidebar-title::after {
   border-bottom: 1px solid var(--border);
 }
 
-.related-rows {
-  margin: 0;
-  padding: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 0.55rem;
+.related-group + .related-group {
+  margin-top: 1.25rem;
 }
 
-.related-row {
-  display: grid;
-  /* Label column sizes to content (up to a cap); links get the rest. */
-  grid-template-columns: minmax(7rem, max-content) 1fr;
-  column-gap: 0.85rem;
-  align-items: baseline;
-  font-size: 0.94rem;
-  line-height: 1.5;
-}
-
-.related-row-label {
+.related-group-label {
   font-family: var(--font-display);
+  font-size: 0.94rem;
   font-weight: 700;
   color: var(--text-muted);
   letter-spacing: 0.03em;
-  margin: 0;
+  margin: 0 0 0.5rem;
 }
 
-.related-row-label::after {
-  content: ":";
-  color: var(--text-dim);
-  margin-left: 0.05rem;
+.related-group-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(14em, 1fr));
+  gap: 0.4rem 1rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
 }
 
-.related-row-links {
-  margin: 0;
+.related-group-grid li {
   color: var(--text);
+  font-size: 0.94rem;
+  line-height: 1.5;
+  overflow-wrap: break-word;
 }
 
-.related-row-links a {
+.related-group-grid a {
   color: var(--accent);
   border-bottom: 1px solid transparent;
 }
 
-.related-row-links a:hover {
+.related-group-grid a:hover {
   color: var(--accent-hover);
   border-bottom-color: var(--accent-dim);
-}
-
-.related-sep {
-  color: var(--text-dim);
-  margin: 0 0.15rem;
-  user-select: none;
 }
 
 @media (max-width: 640px) {
   .related {
     padding: 1.25rem 1.25rem;
-  }
-
-  .related-row {
-    grid-template-columns: 1fr;
-    row-gap: 0.15rem;
   }
 }
