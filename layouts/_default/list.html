@@ -1,5 +1,5 @@
 {{- /*
-  Default list layout: hero + breadcrumbs, the authored body when there is one,
+  Default list layout: hero, the authored body when there is one,
   and an auto-list of the section's members.
 
   Minimal by design: a package-build consumer disables Hugo's `section`,
@@ -15,8 +15,6 @@
 */ -}}
 {{ define "main" }}
 {{ partial "hero-banner.html" . }}
-{{ partial "breadcrumbs.html" . }}
-
 <article class="single">
   <div class="single-content">
     {{ if .Content }}

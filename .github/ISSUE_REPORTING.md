@@ -325,7 +325,7 @@ doubt, disclose privately and let a maintainer decide whether to make it public.
 
 **Bug, Medium, regression**
 
-> **Title:** Restore the breadcrumb package prefix on knowledgebase pages
+> **Title:** Restore the infobox rail on knowledgebase pages
 > **Type:** bug · **Priority:** Medium · **Labels:** `layout`, `regression` · **Milestone:** _(unset)_
 > Body: rendered correctly before; a workaround exists in the consumer → Medium.
 

@@ -34,7 +34,7 @@ The test is **whether a second consumer would need the same template**, not
 whether it looks reusable (issue #1454):
 
 - **Here:** the chrome and the generic page shapes — `baseof`, `_default/`,
-  `404.html`, the home layout, breadcrumbs, hero, TOC, related, the infobox
+  `404.html`, the home layout, hero, TOC, related, the infobox
   renderer driven by the front matter every consumer's content carries.
 - **In the consumer:** templates that render one repository's content and
   nothing else's — a site-specific home page, and any data file describing
@@ -198,8 +198,8 @@ banner: brand/sohl-banner.webp
 Everything published for the system lives under this address …
 ```
 
-Breadcrumbs render nothing on the home page, and it declares no `infoboxes:`,
-`related:`, `date:` or `tags:`, so those pieces of a page stay silent.
+The home page declares no `infoboxes:`, `related:`, `date:` or `tags:`, so
+those pieces of a page stay silent.
 
 **No `type` at all** — a site whose home page is a set of entry points into
 everything it publishes — renders the featured grid documented under
@@ -208,9 +208,9 @@ everything it publishes — renders the featured grid documented under
 
 ## A page
 
-`_default/single.html` renders every other page: the hero, breadcrumbs
-(`Home › {Title}`), the infobox rail (see "The infobox" below), the body, any
-`related:` block, and prev/next links through the page's own catalog.
+`_default/single.html` renders every other page: the hero, the infobox rail
+(see "The infobox" below), the body, any `related:` block, and prev/next links
+through the page's own catalog.
 
 ```yaml
 ---
