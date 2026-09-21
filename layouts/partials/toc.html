@@ -19,7 +19,7 @@
 {{- $raw := .RawContent | default "" -}}
 {{- $h2Count := len (findRE `(?m)^##\s+\S` $raw) -}}
 {{- if gt $h2Count 3 -}}
-<aside class="toc" aria-label="Table of contents">
+<aside class="toc" aria-label="Table of contents" data-pagefind-ignore>
   <div class="toc-inner">
     <p class="toc-label">On this page</p>
     {{ .TableOfContents }}

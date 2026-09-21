@@ -68,7 +68,7 @@
     "context" .RelPermalink) -}}
 
 <section class="hero hero-with-image"{{ with $bannerURL }} style="background-image: url('{{ . }}');"{{ end }}>
-  <div class="hero-inner">
+  <div class="hero-inner" data-pagefind-ignore>
     <h1>{{ .Title }}</h1>
     {{- with .Params.description }}
     <p class="hero-tagline">{{ . }}</p>
