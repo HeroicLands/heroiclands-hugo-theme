@@ -1,5 +1,12 @@
 # @heroiclands/hugo-theme
 
+## 0.7.1
+
+### Patch Changes
+
+- 05f690f: The Related card lists connected pages in columns grouped by type, reflowing
+  from two or three columns on a desktop down to one on a phone.
+
 ## 0.7.0
 
 ### Minor Changes
