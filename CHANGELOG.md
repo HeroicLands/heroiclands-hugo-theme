@@ -1,5 +1,15 @@
 # @heroiclands/hugo-theme
 
+## 0.8.0
+
+### Minor Changes
+
+Pages no longer carry a breadcrumb trail above the hero.
+
+### Patch Changes
+
+A site setting `params.search = true` gets a search box in the header, reading the search index `package-build site-root` writes beside the site. It searches the prose of every page, narrowable by page type and by package.
+
 ## 0.7.1
 
 ### Patch Changes
@@ -13,7 +23,7 @@
 
 - 1569abe: **Breaking.** A package-build site is its home page and its pages; nothing
   generated sits between them.
-  
+
   - **A package-build site that declared sections gets no landings.** The
     theme's per-type catalog pages and knowledgebase landing are gone — an
     index between the home page and a note is a page the consumer writes by
@@ -49,9 +59,9 @@
   are drawn by one generic renderer, `partials/infobox.html`. The per-type
   partials that decided what each box held are gone, along with the two dispatches
   that chose between them.
-  
+
   **What a consumer must change**
-  
+
   - **Build the site with a toolchain that emits `infoboxes:`** —
     `@heroiclands/package-build` settles which boxes a page carries, which fields
     each holds, in what order and under what labels. A page whose front matter
@@ -66,9 +76,9 @@
   - **A consumer styling `.info-portrait` or `.info-portrait-link`** has nothing
     to style: a box carries no image. A portrait is authored in the page body,
     where its position in the prose governs.
-  
+
   **What a reader sees**
-  
+
   - **Every page carries a Profile box**, and one box per game system its kind of
     page reaches. A system box with nothing to show says why — _Not available_
     where that system compiled no document for the page, _Nothing beyond the
@@ -89,24 +99,24 @@
 ### Minor Changes
 
 - 82d0a3e: The being sidebar reads its subject's description from `data:` (#55).
-  
+
   A being's physical description — gender, age, birthday, height, weight, frame and
   the `appearance.*` keys — was read out of a top-level `traits:` block. The content
   format declares no such block. A note's type-specific facts live in the closed
   `data:` container, and `being` declares every one of those keys there.
-  
+
   The difference is not cosmetic. Top level is deliberately open: the format passes
   unrecognised keys straight through to Hugo, so a misspelled `wieght` under
   `traits:` arrived here as a theme parameter rather than as a finding, and none of
   these fields was checked by anything. Under `data:` the same misspelling names the
   note and suggests the key it was meant to be.
-  
+
   Three of the reads changed shape as well as place. The old block nested its
   measurements — `height: {m:}`, `weight: {kg:}`, `build: {frame:}` — where the
   format declares `height` and `weight` as bare numbers, in metres and kilograms,
   and `frame` as a property in its own right. The imperial conversions the
   Appearance sentence performs are unchanged; only the path they read is.
-  
+
   **`traits:` is still read, underneath `data:`, and normalised to that one shape.**
   2,533 notes across three repositories carry the old block today — 2,512 in
   `harn-ensemble`, 17 in `sohl-kethira-basic`, 4 in `Song-of-Heroic-Lands-FoundryVTT`
@@ -118,42 +128,43 @@
   correctly does for a creature that has no description at all. Reading both makes
   the order those changes land in stop mattering, and `data:` wins wherever a note
   writes both, so a converted tree is never read through the old shape.
-  
+
   The fallback is transitional and is removed once no tree writes `traits:`.
+
 - 83de0fb: A page's breadcrumb and its prev/next links follow the catalog it declares, not the
   directory it sits in (#47, #48, #49).
-  
+
   Both read a page's place in the site from `.CurrentSection`, which said what it
   needed to say only while a page lived in a directory named for its catalog.
   `@heroiclands/package-build` (package-build#204) emits every content page **flat**
   under the content mount, so a consumer's whole catalog is one Hugo section — and
   the two facts that were derived from directory membership stopped being facts:
-  
+
   - The **middle crumb's href** became the mount. Every content page still labelled
     itself with its section and linked the knowledgebase landing, losing the
     one-click route back to its own listing — 1,478 pages of the SoHL knowledgebase.
   - **Prev/next** became "anywhere in the knowledgebase". Reading through the
     afflictions walked out of them into skills and traumas in title order; 1,506
     links crossed a catalog boundary.
-  
+
   **The address is resolved, not composed or inherited.** A new
   `partials/catalog-landing.html` answers "which section landing lists this page?"
   from the `listType` / `listSubType` front matter a generated landing already
   carries — the same contract `_default/list.html` reads from the other end (#50), a
   site-wide query that asks what a page _is_ rather than where its file sits.
-  Failing that it falls back to a section *named* for the page's catalog: the shape
+  Failing that it falls back to a section _named_ for the page's catalog: the shape
   every consumer has today, and a weaker answer, since a section name is a published
   URL its owner chose and need not spell the catalog the way the content does
   (`/kb/user-guide/` lists pages whose genre is `userguide`). That fallback retires
   itself as builds start emitting the keys. Failing both, the crumb keeps today's
   `.CurrentSection` — the enclosing mount, which is at least a page that exists.
-  
+
   **Narrowing prev/next is conditional, and that is what keeps it a no-op.** A
   section holding one catalog is left alone, because `.PrevInSection` already walks
   exactly that catalog there. Only a section that actually mixes catalogs — a flat
   mount — gets the narrowed sibling set. Verified against all three consumers: on
   thalorna and heroiclands.org the rendered prev/next is byte-identical.
-  
+
   **Doc pages get their crumb back** (#49). The middle crumb read `.Params.category`
   for `type: doc`, but content notes compiled by package-build name their genre in
   `subType`, so the crumb rendered an unlinked, unhelpful `doc` — 160 pages,
@@ -163,7 +174,7 @@
   itself renders `Home > {Title}` rather than naming itself twice, and a page with no
   `package` to compose a label from borrows the section's own title instead of
   falling back to its bare type.
-  
+
   The catalog key itself — `type`, or the genre for a `doc` — is factored into
   `partials/catalog-key.html` so the crumb and the sibling walk cannot drift apart on
   what catalog a page is in.
@@ -171,35 +182,36 @@
 ### Patch Changes
 
 - dca40b1: The being sidebar reads `data:` alone (#56).
-  
+
   #55 moved it onto the `data:` container the content format declares, and kept reading
   the legacy top-level `traits:` block underneath — normalised to the same shape — for
   one release. That fallback existed so the four repositories converting to the new
   shape could land in any order without a published sidebar silently going blank in
   between.
-  
+
   All of them have landed, and **every content tree now carries zero `traits:` blocks**:
   `harn-ensemble`, `sohl-thalorna`, `sohl-kethira-basic`,
   `Song-of-Heroic-Lands-FoundryVTT` and `harn-adventures`. So the fallback is a second
   way to say one thing, kept alive by nothing.
-  
+
   Verified by rendering rather than by argument: the SoHL knowledgebase built with and
   without the fallback is **byte-identical across all 1,785 pages, 95 of them being
   pages**. The `data:` path is live in that output — `Basic_Folk` renders _"Age 20,
   5′ 7″, 150 lbs, medium frame, brown eyes, brown hair, pale skin"_, with its Gender and
   Born rows, all from `data:`.
+
 - a8dc113: Infobox cards render their sections again, across being, gear and geographic pages.
-  
+
   **Being profiles** show Attributes, Skills, Spells, Arcane Talents, Equipment and
   Occupation, and link a being's Affiliations to their pages.
-  
+
   **Gear cards** (weapon, armor, container, projectile, concoction) show Price,
   Weight, Durability, Protection, Strike Modes, Material, Heft, Encumbrance,
   Perception Penalty and Max Capacity, as the type carries them.
-  
+
   **Affiliation cards** show an affiliation's Kind, Epithet, Symbol, Deity and
   parent Pantheon.
-  
+
   **Polity, region, continent and settlement pages** show their profile card at
   all — Type, Capital, Government, Population, and the region/continent chain a
   reader can climb.
@@ -210,36 +222,37 @@
 
 - 6f41327: Style `.sohl-draft-link`, the class the SoHL content builds wrap around a link
   whose target exists but is not written yet (#44).
-  
+
   The builds mark such a link the way they already mark an unresolved one
   (HeroicLands/package-build#183), leaving the link itself alone so it still goes
   where it says. Without a rule here the span arrived styled as body text and the
   marking communicated nothing — the same gap #28/#29 closed for the unresolved
   marker.
-  
+
   **Deliberately not the unresolved marking.** An unresolved link's target does not
   exist; a draft link's does and is simply unwritten, so a reader has to be able
   to tell them apart. This keeps the link's normal weight — it _is_ a real link —
   and marks it in amber with a dashed underline, against the unresolved marker's
   bold red and dotted one. Not signalled by hue alone, for the same reason.
-  
+
   The colour is exposed as `--draft-link` for a consumer to override, and is
   contrast-checked against the three surfaces it can sit on: 10.0:1 on `--bg`,
   9.3:1 on `--bg-card`, 8.1:1 on `--surface`. Single-mode dark, as the unresolved
   rule is, because this theme sets no `color-scheme` and a `light-dark()` value
   would resolve to its light half.
+
 - d444676: A section landing lists its members by front matter when it has no child pages.
-  
+
   `_default/list.html` listed a section from `.Pages` — what Hugo finds inside the
   section's directory. `@heroiclands/package-build` 13.0.0 emits every content page
   **flat** under the content mount instead, stating its own `url:`, so a section
   directory holds nothing but its own generated `_index.md` and every declared
   section landing rendered "Nothing here yet." (issue #50). No published address
   moved; only the file paths did.
-  
+
   The section now says what it lists, in two front-matter keys the build writes onto
   the landing:
-  
+
   - **`listType`** — a content type, matched against the page's `Type`.
   - **`listSubType`** — optional, and meaningful only alongside `listType`, matched
     against the page's `subType`. One type can hold several genres: `rules`,
@@ -247,16 +260,16 @@
     mounted from a repository directory is `type: doc` carrying no `subType` at all,
     so `listType` alone would sweep all four together into whichever section asked
     first.
-  
+
   The query is site-wide, which is the point — it asks what a page _is_, not where
   its file sits, so it is indifferent to how a build lays the tree out. It is the
   same query a consumer's own catalog layouts already run, which is why those were
   never affected.
-  
+
   Deliberately **not** Hugo's own `type:`: on an `_index.md` that key selects the
   template, so a content type written there would send the landing to
   `layouts/<type>/list.html` instead of the default list layout.
-  
+
   **Nothing changes for a landing that declares neither key.** They are read only
   when `.Pages` is empty, so a consumer still filing pages into section directories
   never reaches them, and ordering is unchanged either way — both collections carry
@@ -268,7 +281,7 @@
 ### Minor Changes
 
 - 772ab17: `landing.cards` can express a landing that is a section, not the home page.
-  
+
   `source: sections` derived its cards from `.Site.Sections`, which is the site's
   top-level list. A package that mounts its content tree one level down — what
   `publish.address.prefix` produces — has exactly one top-level section, so the
@@ -276,11 +289,11 @@
   The derivation now reads the **rendering page's own** `.Sections`. On a home
   page the two lists are the same object, so every existing landing derives
   exactly what it derived before.
-  
+
   Three additions let a nested landing say what a flat derived list could not, and
   `layouts/landing/list.html` renders one from a section's own `_index.md` under
   `type: landing`:
-  
+
   - **`banners: true`** gives each derived card its section's `banner:` as a card
     image, resolved by the same order, the same `params.cdnBaseURL` indirection
     and the same declared-inventory guard as a hero band — that resolution now
@@ -297,18 +310,18 @@
     nothing in the hierarchy distinguishes "Actors" from "Gear". Anything no group
     named renders in a row after them, the same gap-filling promise
     `_default/list.html` makes about orphaned pages.
-  
+
   An authored `items` card may now carry `banner:` too. Card markup is unchanged
   for a card without one, so `/sohl/` and `/thalorna/` render byte-identically;
   the stylesheet gains `.door-with-image`, `.door-image`, `.door-body`,
   `.doors-groups` and `.doors-group` and changes nothing it already had.
-  
+
   Closes #41.
 
 ### Patch Changes
 
 - 489e01e: `hero-banner.html` falls back to `default.webp` when a banner has not been drawn.
-  
+
   A subtype default resolved to `images/banners/<subtype>.webp` and was emitted into
   a `background-image` unchecked, so a page with a type got its subtype's name
   whether or not that file had ever been published — and the failure was silent: the
@@ -319,7 +332,7 @@
   `banner: none` renders the band with no image rather than resolving to
   `images/none`. `npm run lint:banners` fetches every declared name so the list
   cannot rot.
-  
+
   Declared here rather than on its own pull request because it merged (#36, #37)
   before this repository had a changesets pipeline, and so is sitting on `main`
   unpublished — exactly the state #30 exists to make visible.
