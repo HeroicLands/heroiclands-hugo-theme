@@ -38,7 +38,7 @@
   {{- end -}}
   {{- $system := eq ($box.kind | default "") "system" -}}
   {{- if or $system (gt (len $sections) 0) }}
-<details class="info-sidebar info-box{{ with $box.id }} info-box-{{ . }}{{ end }}" open>
+<details class="info-sidebar info-box{{ with $box.id }} info-box-{{ . }}{{ end }}" open data-pagefind-ignore>
   <summary class="info-sidebar-title"><h2>{{ $box.title }}</h2></summary>
   {{- with $box.statement }}
   <p class="info-statement">{{ . }}</p>

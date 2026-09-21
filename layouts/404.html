@@ -31,7 +31,7 @@
 {{- $tagline := $nf.tagline | default "This site has no page at" -}}
 {{- $noun := $nf.sitenoun | default "site" -}}
 <section class="hero hero-with-image" style="background-image: url('{{ $heroURL }}');">
-  <div class="hero-inner">
+  <div class="hero-inner" data-pagefind-ignore>
     <h1>Page not found</h1>
     <p class="hero-tagline">{{ $tagline }} <code id="missing-path">the address you followed</code>.</p>
   </div>

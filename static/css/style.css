@@ -143,6 +143,12 @@ img {
   letter-spacing: 0.03em;
 }
 
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+}
+
 .site-nav {
   display: flex;
   gap: 2rem;
@@ -251,6 +257,66 @@ img {
 }
 .nav-toggle.open span:nth-child(3) {
   transform: translateY(-7px) rotate(-45deg);
+}
+
+/* ---- Search ---- */
+
+.site-search {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.search-toggle {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0.5rem;
+  font-size: 1.1rem;
+  line-height: 1;
+  color: var(--text-muted);
+  transition: color 0.2s;
+}
+
+.search-toggle:hover,
+.search-toggle[aria-expanded="true"] {
+  color: var(--text);
+}
+
+.search-panel {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  margin-top: 0.75rem;
+  width: min(28rem, 90vw);
+  max-height: 70vh;
+  overflow-y: auto;
+  background: var(--bg-deeper);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 1rem;
+  z-index: 200;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+}
+
+/* Pagefind's own UI renders inside .search-panel-inner. These custom
+   properties are Pagefind's own theming hooks (pagefind_ui/default), carried
+   onto this theme's palette so results read like the rest of the chrome
+   rather than Pagefind's light default. */
+.search-panel-inner {
+  --pagefind-ui-primary: var(--accent);
+  --pagefind-ui-text: var(--text);
+  --pagefind-ui-background: var(--bg-card);
+  --pagefind-ui-border: var(--border);
+  --pagefind-ui-tag: var(--surface);
+  --pagefind-ui-border-radius: 4px;
+  --pagefind-ui-image-border-radius: 4px;
+  --pagefind-ui-font: var(--font-body);
+}
+
+.search-panel-inner mark {
+  color: var(--gold);
+  background: none;
 }
 
 /* ---- Hero ---- */

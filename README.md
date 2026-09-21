@@ -141,6 +141,10 @@ baseURL = "https://example.org/"        # or "https://example.org/sohl/"
       image = "images/banners/rules.webp"
       text  = "…"
 
+  # The header search box (partials/search.html). Silent-disappear: omitted
+  # or false, the theme renders no search markup at all. See "Search" below.
+  search = true
+
   # The "page not found" page (layouts/404.html). Hugo renders it to
   # public/404.html, which a static host serves — with a real HTTP 404 — for
   # any unpublished path. Omit it and the page still renders, with generic
@@ -442,6 +446,50 @@ gives the band its presence. This is deliberately distinct from *not having one
 yet*: a package may have a standing editorial reason to publish no imagery, as
 the fan-material carve-outs do, and falling back to a default for those would
 substitute artwork where the considered answer was "none".
+
+## Search
+
+`params.search = true` renders a search box in the header; left unset (or
+`false`), `partials/search.html` renders nothing. The box, and everything it
+opens, is the theme's own — the index it reads is not.
+
+**Where the index comes from.** `@heroiclands/package-build` ≥ 22.4.5 writes
+a [Pagefind](https://pagefind.app) index at `pagefind/` beside the rendered
+pages, when `site.search` in `package-build.config.yaml` is left at its
+default of `true` (see that package's `docs/configuration.md`, `site.search`,
+and `package-build site-root` in `docs/commands.md`). Pagefind's own UI —
+`pagefind-ui.js` and `pagefind-ui.css` — ships inside that generated
+directory, so this theme carries no copy and is pinned to no Pagefind
+version. Turning `params.search` on without a package-build carrying that
+index (or with `site.search: false`) shows an empty results box that never
+finds anything — the two settings are independent, and a consumer sets both.
+
+Both files are referenced the same way every other theme-bundled asset is —
+`relURL`, the same resolution `"css/style.css" | relURL` uses in
+`baseof.html` — so a package served under a prefix (`/thalorna/pagefind/…`)
+finds its own index rather than another package's, and the theme carries no
+address of its own.
+
+**Why a header box and not a `/search/` page.** A site is its homepage and
+its pages, with nothing generated between them — a results page would need a
+consumer content file at that address, which this theme has no way to
+conjure. Pagefind's own panel UI needs no page of its own: the header button
+opens it in place.
+
+**What is indexed.** `data-pagefind-body` on `.single-body` scopes indexing
+to a page's prose; the theme's own chrome carries `data-pagefind-ignore` —
+the header, the footer, the infobox rail, the table of contents, the Related
+card, and the hero banner's title and tagline. `_default/single.html` also
+tags every page with `data-pagefind-filter="type"` and
+`data-pagefind-filter="package"`, read from the page's own `type` and
+`package` front matter, so a search can be narrowed to one catalog or one
+package without either value appearing in the page itself.
+
+**Classes added:** `.site-search`, `.search-toggle`, `.search-panel`,
+`.search-panel-inner`, and `.header-actions` (the header's nav/search/toggle
+group). `.search-panel-inner` carries Pagefind's own `--pagefind-ui-*`
+theming variables, set from this theme's own tokens so results match the
+chrome around them.
 
 ## License
 

@@ -41,7 +41,7 @@
 {{- else -}}
 {{- with .Site.Params.home }}
 <section class="hero hero-with-image"{{ with .heroimage }} style="background-image: url('{{ partial "cdn-url.html" (dict "site" $.Site "path" .) }}');"{{ end }}>
-  <div class="hero-inner">
+  <div class="hero-inner" data-pagefind-ignore>
     <h1>{{ .herotitle }}</h1>
     {{- with .herotagline }}
     <p class="hero-tagline">{{ . }}</p>

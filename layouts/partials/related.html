@@ -105,7 +105,7 @@
        column 0 leaves the emitted HTML byte-identical to what pages with
        `related` rendered before the guard was added. */ -}}
 {{- if $rows -}}
-<section class="related" aria-labelledby="related-heading">
+<section class="related" aria-labelledby="related-heading" data-pagefind-ignore>
   <h2 id="related-heading" class="related-heading">Related</h2>
   {{- range $rows }}
   <div class="related-group">

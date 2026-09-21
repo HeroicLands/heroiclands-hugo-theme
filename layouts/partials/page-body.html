@@ -24,6 +24,12 @@
 {{- $hasToc := gt $h2Count 3 -}}
 
 <article class="single{{ if $hasSidebar }} single-with-sidebar{{ else if $hasToc }} single-with-toc{{ end }}">
+  {{- /* Filter values a search can narrow on, invisible and excluded from
+         indexing themselves — `data-pagefind-filter` is read wherever it
+         sits, `data-pagefind-body`/`data-pagefind-ignore` scoping included
+         (see the README's "Search" section). */ -}}
+  {{- with .Params.type }}<span data-pagefind-filter="type" hidden>{{ . }}</span>{{ end -}}
+  {{- with .Params.package }}<span data-pagefind-filter="package" hidden>{{ . }}</span>{{ end -}}
   {{- if $hasSidebar }}
   {{- /* The rail comes first in document order, because the infobox is
          generated content prepended before the prose: on a narrow screen the
@@ -48,7 +54,7 @@
     </div>
     {{ end }}
 
-    <div class="single-body">
+    <div class="single-body" data-pagefind-body>
       {{ .Content }}
     </div>
 
