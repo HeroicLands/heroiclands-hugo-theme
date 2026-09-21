@@ -3,9 +3,8 @@ name: Publish to npm
 # The whole release process, from a merged pull request to a version on the
 # registry. Nothing here is started by hand.
 #
-#   1. A pull request declares its bump as a `.changeset/*.md` file — or an
-#      empty one saying it needs none. The "Changeset declared" job in lint.yml
-#      fails it otherwise.
+#   1. A pull request declares its bump as a `.changeset/*.md` file when a
+#      consumer will notice the change.
 #   2. Merging it to `main` runs this workflow, which opens or updates the
 #      version pull request: the bump plus the rewritten CHANGELOG.md. An
 #      unreleased state is therefore a pull request sitting in the queue, not an
