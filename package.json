@@ -41,10 +41,11 @@
     "lint:labels": "node utils/check-labels.mjs",
     "lint:banners": "node utils/check-banners.mjs",
     "changeset": "changeset",
-    "changeset:version": "changeset version && npm install --package-lock-only"
+    "changeset:version": "changeset version && package-build changelog group && npm install --package-lock-only"
   },
   "devDependencies": {
     "@changesets/cli": "^3.0.1",
+    "@heroiclands/package-build": "^22.4.4",
     "yaml": "^2.9.0"
   }
 }
