@@ -21,6 +21,13 @@
   wear a hazard mark without teaching a reader to discount it. `aria-hidden`
   keeps it out of a screen reader, where the label reads the same thing.
 
+  The sentence sets in italic and the label in bold roman. Every other word on
+  the page is the world describing itself; this sentence is the page speaking
+  about its own state, and italic is how a reader is told the voice has
+  changed. It is an `em`, so the italic arrives with the markup rather than
+  with the stylesheet, and a bold italic beside the mark would be one emphasis
+  too many.
+
   Silent-disappear: a settled page emits nothing here.
 
   Context: the page.
@@ -29,6 +36,6 @@
 {{- $notice := .Site.Params.draftNotice | default "This entry is unfinished. What it states may change, and nothing in it is settled." -}}
 <aside class="draft-notice">
   <i class="fa-solid fa-circle-exclamation draft-notice-icon" aria-hidden="true"></i>
-  <p class="draft-notice-text"><strong class="draft-notice-label">Draft.</strong> {{ $notice }}</p>
+  <p class="draft-notice-text"><strong class="draft-notice-label">Draft.</strong> <em>{{ $notice }}</em></p>
 </aside>
 {{ end -}}

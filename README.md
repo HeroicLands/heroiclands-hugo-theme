@@ -242,7 +242,7 @@ out of the meta line's tag row and said here instead.
 ```html
 <aside class="draft-notice">
   <i class="fa-solid fa-circle-exclamation draft-notice-icon" aria-hidden="true"></i>
-  <p class="draft-notice-text"><strong class="draft-notice-label">Draft.</strong> …</p>
+  <p class="draft-notice-text"><strong class="draft-notice-label">Draft.</strong> <em>…</em></p>
 </aside>
 ```
 
@@ -253,6 +253,8 @@ out of the meta line's tag row and said here instead.
   **`.draft-notice-label`** are the classes a consumer styles against.
 - The mark is Font Awesome, which `baseof.html` already loads; the sentence
   reads on its own where it does not arrive.
+- The sentence is an `em`: the label is the page's own voice naming the state,
+  and the sentence is the page speaking about itself.
 - A page carrying the notice also carries **`.single-with-notice`** on its
   article, which is what moves a two-column page's content and rail below it.
 
