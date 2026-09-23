@@ -1254,7 +1254,7 @@ a.tag:hover {
 
 .draft-notice {
   display: flex;
-  align-items: baseline;
+  align-items: center;
   gap: 0.7rem;
   margin-bottom: 2rem;
   padding: 0.85rem 1.1rem;
@@ -1266,7 +1266,7 @@ a.tag:hover {
 
 .draft-notice-icon {
   color: var(--draft-link);
-  font-size: 0.95rem;
+  font-size: 1.4rem;
   flex: none;
 }
 
