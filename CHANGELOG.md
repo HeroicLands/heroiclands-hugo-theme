@@ -1,5 +1,22 @@
 # @heroiclands/hugo-theme
 
+## 0.9.0
+
+### Minor Changes
+
+**Draft pages say so.** A page tagged `draft` carries a notice above its
+infobox and its prose: the entry is unfinished, and nothing in it is settled. A
+finished page carries nothing, and a site can write its own wording with
+`params.draftNotice`.
+
+**Within, Held by, Holdings.** A place page gets a card below the body listing what it contains and who holds it; an affiliation page gets one listing what it holds — grouped by kind, before the Related card.
+
+**Unwritten pages stay honest.** An entry naming a page nobody has written yet renders as plain text, never a link to nowhere.
+
+### Patch Changes
+
+A tag that describes the state of the writing, not the subject of the page, no longer appears among a page's tags. Pages carrying the `draft` tag show their other tags as before; a page tagged only `draft` shows no tag row at all.
+
 ## 0.8.0
 
 ### Minor Changes
