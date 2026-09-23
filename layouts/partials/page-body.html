@@ -41,16 +41,13 @@
   </aside>
   {{- end }}
   <div class="single-content">
-    {{ if or .Params.date .Params.tags }}
+    {{- $tagChips := partial "tags.html" . -}}
+    {{ if or .Params.date (ne (trim $tagChips " \r\n\t") "") }}
     <div class="single-meta">
       {{ if .Params.date }}
       <time class="single-date" datetime="{{ .Date.Format "2006-01-02" }}">{{ .Date.Format "January 2, 2006" }}</time>
       {{ end }}
-      {{ with .Params.tags }}
-      <div class="single-tags">
-        {{ range . }}<a href="{{ printf "tags/%s/" (. | urlize) | relURL }}" class="tag">{{ . }}</a>{{ end }}
-      </div>
-      {{ end }}
+      {{ $tagChips }}
     </div>
     {{ end }}
 
