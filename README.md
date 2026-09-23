@@ -234,6 +234,28 @@ tags: [archetype, mercantyl] # optional; shown in the page meta line
 - **`date`**, **`tags`** — each optional and shown only when present, in a
   meta line above the body. A tag links to `tags/<tag>/`.
 
+**The draft notice.** A page tagged `draft` states that its content is not
+settled, at the head of the article — above the infobox rail and above the
+prose, at every width. The tag is a state rather than a subject, so it is kept
+out of the meta line's tag row and said here instead.
+
+```html
+<aside class="draft-notice">
+  <i class="fa-solid fa-circle-exclamation draft-notice-icon" aria-hidden="true"></i>
+  <p class="draft-notice-text"><strong class="draft-notice-label">Draft.</strong> …</p>
+</aside>
+```
+
+- **`params.draftNotice`** replaces the sentence. The default reads
+  *This entry is unfinished. What it states may change, and nothing in it is
+  settled.*
+- **`.draft-notice`**, **`.draft-notice-icon`**, **`.draft-notice-text`** and
+  **`.draft-notice-label`** are the classes a consumer styles against.
+- The mark is Font Awesome, which `baseof.html` already loads; the sentence
+  reads on its own where it does not arrive.
+- A page carrying the notice also carries **`.single-with-notice`** on its
+  article, which is what moves a two-column page's content and rail below it.
+
 **Prev/next.** `.PrevInSection` / `.NextInSection` walk every page under the
 site's content mount, since `@heroiclands/package-build` emits every note
 flat there rather than filing it into a directory named for its catalog. A
