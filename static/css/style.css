@@ -1232,6 +1232,85 @@ a.tag:hover {
   cursor: help;
 }
 
+/* ---- The draft notice ----
+
+   A page's statement that its own content is not settled, at the head of the
+   article. It is a statement about the document rather than a fact about the
+   subject, which is why it sits above the infobox instead of inside it, and
+   why it reads as apparatus rather than as prose.
+
+   Amber rather than grey. This theme is a single dark scheme — it sets no
+   `color-scheme`, so a `light-dark()` value would resolve to its light half —
+   and the grey tokens reach about 2.6:1 on `--bg-card`, which is not a mark
+   anyone sees. `--draft-link` is already what draft means here, on links into
+   a draft note, and the palette records it at 9.3:1 on this ground. The
+   sentence itself sets in `--text`, so it reads as a statement rather than as
+   decoration, and the whole thing is calm enough to carry on a page in every
+   few without becoming wallpaper.
+
+   The mark is a notice, not a hazard, and it is the one part that can be
+   absent: Font Awesome is a third-party stylesheet, and the sentence is
+   written to stand without it. */
+
+.draft-notice {
+  display: flex;
+  align-items: baseline;
+  gap: 0.7rem;
+  margin-bottom: 2rem;
+  padding: 0.85rem 1.1rem;
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--draft-link);
+  border-radius: 4px;
+  background: var(--bg-card);
+}
+
+.draft-notice-icon {
+  color: var(--draft-link);
+  font-size: 0.95rem;
+  flex: none;
+}
+
+.draft-notice-text {
+  color: var(--text);
+  font-size: 0.94rem;
+  line-height: 1.6;
+  margin: 0;
+}
+
+.draft-notice-label {
+  color: var(--draft-link);
+  font-family: var(--font-display);
+  letter-spacing: 0.02em;
+}
+
+/* The notice spans both columns of a two-column article, because it is about
+   the whole page rather than about either column. A page carrying one moves
+   its content and its rail to the second row; a page without one keeps the
+   single row it has, so no page pays an empty track for a notice it does not
+   carry. */
+.single.single-with-sidebar > .draft-notice,
+.single.single-with-toc > .draft-notice {
+  grid-column: 1 / -1;
+  grid-row: 1;
+}
+
+.single.single-with-notice.single-with-sidebar > .single-content,
+.single.single-with-notice.single-with-sidebar > .info-rail {
+  grid-row: 2;
+}
+
+@media (max-width: 960px) {
+  /* One column, so document order governs here as it does for the rail, and
+     the notice is written first. */
+  .single.single-with-sidebar > .draft-notice,
+  .single.single-with-toc > .draft-notice,
+  .single.single-with-notice.single-with-sidebar > .single-content,
+  .single.single-with-notice.single-with-sidebar > .info-rail {
+    grid-column: 1;
+    grid-row: auto;
+  }
+}
+
 /* ---- Banners ---- */
 
 .banner {

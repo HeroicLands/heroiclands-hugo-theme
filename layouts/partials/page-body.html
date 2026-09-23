@@ -23,7 +23,17 @@
 {{- $h2Count := len (findRE `(?m)^##\s+\S` (.RawContent | default "")) -}}
 {{- $hasToc := gt $h2Count 3 -}}
 
-<article class="single{{ if $hasSidebar }} single-with-sidebar{{ else if $hasToc }} single-with-toc{{ end }}">
+{{- /* A draft page states it, which also decides the article's first grid
+       row — see the notice partial and `.single-with-notice`. */ -}}
+{{- $isDraft := partial "draft-state.html" . -}}
+
+<article class="single{{ if $hasSidebar }} single-with-sidebar{{ else if $hasToc }} single-with-toc{{ end }}{{ if $isDraft }} single-with-notice{{ end }}">
+  {{- /* A statement about the page rather than about its subject, so it leads
+         the article: above the rail and above the prose, at every width. It
+         spans the grid for that reason — inside `.single-content` it would sit
+         beside the boxes on a wide screen and below them on a narrow one,
+         where the rail comes first. */ -}}
+  {{ partial "draft-notice.html" . }}
   {{- /* Filter values a search can narrow on, invisible and excluded from
          indexing themselves — `data-pagefind-filter` is read wherever it
          sits, `data-pagefind-body`/`data-pagefind-ignore` scoping included
