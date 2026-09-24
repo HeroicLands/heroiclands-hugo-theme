@@ -147,6 +147,7 @@ Anything a consumer would have to change to keep working is a `breaking-change`;
 label it and say so in the PR.
 
 **No AI/assistant attribution** in commit messages, pull-request titles or bodies,
-or issues. A committed `commit-msg` hook (activated by `npm install`) rejects such
-commits locally, and the **No Attribution** GitHub Actions check fails any pull
-request carrying it.
+or issues. The tracked `commit-msg` hook requires Node 24 or newer, the version
+specified in `package.json`; `npm ci` activates it. It rejects supported assistant
+credits while allowing human coauthors and explanatory prose. The **No Attribution**
+GitHub Actions check examines PR titles, bodies and commit messages.
