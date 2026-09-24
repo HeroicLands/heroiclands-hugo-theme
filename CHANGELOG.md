@@ -1,5 +1,13 @@
 # @heroiclands/hugo-theme
 
+## 0.9.1
+
+### Patch Changes
+
+The draft notice's mark is larger and sits centered beside its sentence, easier to notice against the text next to it.
+
+A draft page's notice sets its sentence in italic, with **Draft.** in bold ahead of it — the page speaking about its own state rather than about the world.
+
 ## 0.9.0
 
 ### Minor Changes
