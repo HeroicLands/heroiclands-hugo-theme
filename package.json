@@ -45,7 +45,7 @@
   },
   "devDependencies": {
     "@changesets/cli": "^3.0.1",
-    "@heroiclands/package-build": "^22.14.1",
+    "@heroiclands/package-build": "^22.14.4",
     "yaml": "^2.9.0"
   }
 }
