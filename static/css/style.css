@@ -1098,6 +1098,110 @@ a.tag:hover {
   margin: 1.5rem 0;
 }
 
+/* An authored image uses its file width unless a named size sets a measure. */
+.single-content figure.note-image {
+  display: table;
+  width: max-content;
+  max-width: 100%;
+  margin: 1.5rem 0;
+}
+
+.single-content figure.note-image img {
+  display: block;
+  width: auto;
+  max-width: 100%;
+  height: auto;
+  margin: 0;
+}
+
+.single-content figure.note-image figcaption {
+  display: table-caption;
+  caption-side: bottom;
+  margin-top: 0.4rem;
+  color: var(--text-muted);
+  font-size: 0.8rem;
+  line-height: 1.4;
+}
+
+.single-content figure.note-image-size-small { --note-image-width: 64px; }
+.single-content figure.note-image-size-medium { --note-image-width: 128px; }
+.single-content figure.note-image-size-large { --note-image-width: 256px; }
+.single-content figure.note-image-size-xlarge { --note-image-width: 512px; }
+
+.single-content figure.note-image-size-small,
+.single-content figure.note-image-size-medium,
+.single-content figure.note-image-size-large,
+.single-content figure.note-image-size-xlarge {
+  width: min(100%, var(--note-image-width));
+}
+
+.single-content figure.note-image-size-small img,
+.single-content figure.note-image-size-medium img,
+.single-content figure.note-image-size-large img,
+.single-content figure.note-image-size-xlarge img {
+  width: 100%;
+}
+
+.single-content figure.note-image-full-width,
+.single-content figure.note-image-size-full-width {
+  display: block;
+  width: 100%;
+}
+
+.single-content figure.note-image-full-width img,
+.single-content figure.note-image-size-full-width img {
+  width: var(--note-image-width, 100%);
+}
+
+.single-content figure.note-image-full-width figcaption,
+.single-content figure.note-image-size-full-width figcaption {
+  display: block;
+}
+
+.single-content figure.note-image-float-top-left,
+.single-content figure.note-image-float-bottom-left {
+  float: left;
+  max-width: 50%;
+  margin: 0.25rem 1.25rem 0.75rem 0;
+}
+
+.single-content figure.note-image-float-top-right,
+.single-content figure.note-image-float-bottom-right {
+  float: right;
+  max-width: 50%;
+  margin: 0.25rem 0 0.75rem 1.25rem;
+}
+
+.single-content figure.note-image-full-width,
+.single-content figure.note-image-size-full-width {
+  max-width: 100%;
+}
+
+.single-content figure.note-image-float-center {
+  float: none;
+  margin: 1.5rem auto;
+}
+
+@media (max-width: 720px) {
+  .single-content figure.note-image-float-top-left,
+  .single-content figure.note-image-float-bottom-left,
+  .single-content figure.note-image-float-top-right,
+  .single-content figure.note-image-float-bottom-right {
+    float: none;
+    display: block;
+    width: 100%;
+    max-width: 100%;
+    margin: 1.5rem auto;
+  }
+
+  .single-content figure.note-image-float-top-left img,
+  .single-content figure.note-image-float-bottom-left img,
+  .single-content figure.note-image-float-top-right img,
+  .single-content figure.note-image-float-bottom-right img {
+    width: var(--note-image-width, auto);
+  }
+}
+
 /* Ornamental horizontal rule: thin line flanking a centered gold
    diamond. Uses gradients on ::before/::after to keep the markup
    clean (authors just write `---` in markdown). */
