@@ -2534,7 +2534,8 @@ summary.info-sidebar-title::after {
    each name. */
 
 .related,
-.holdings {
+.holdings,
+.place-map {
   margin: 3rem 0 1rem;
   padding: 1.5rem 1.75rem;
   background: var(--bg-card);
@@ -2542,7 +2543,8 @@ summary.info-sidebar-title::after {
   border-radius: 0.5rem;
 }
 
-.related-heading {
+.related-heading,
+.place-map-heading {
   font-family: var(--font-display);
   font-size: 1.4rem;
   font-weight: 700;
@@ -2615,9 +2617,26 @@ summary.info-sidebar-title::after {
   color: var(--text-muted);
 }
 
+.place-map-drawing {
+  max-width: 100%;
+  overflow-x: auto;
+}
+
+.place-map-drawing svg {
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  height: auto;
+}
+
 @media (max-width: 640px) {
+  .place-map-drawing svg {
+    min-width: 32rem;
+  }
+
   .related,
-  .holdings {
+  .holdings,
+  .place-map {
     padding: 1.25rem 1.25rem;
   }
 }

@@ -454,6 +454,17 @@ card uses, so a region with forty settlements stays scannable.
 A page whose front matter declares none of `contains`, `held_by` or
 `holdings` renders no card at all.
 
+## The place map
+
+A place page with `map: from-<shortcode>.svg` displays a **From here** panel
+between Holdings and Related. The map is a page-bundle SVG generated from the
+place's borders and routes. Its place names link to their pages. A page with no
+`map` value or no matching bundle resource displays no panel.
+
+The drawing fits the content column and scrolls horizontally when the available
+width is narrow. The relevant classes are `.place-map`, `.place-map-heading`,
+and `.place-map-drawing`.
+
 ## The related card
 
 `partials/related.html` renders a bordered "Related" card below the body,
