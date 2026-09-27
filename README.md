@@ -390,6 +390,21 @@ its own words where it did not. A whole `number` is set with digit grouping.
 A page whose front matter declares no `infoboxes:` renders no rail, so a
 consumer whose content does not carry them is unaffected.
 
+## Images in note prose
+
+The content renderer emits a `figure.note-image` for a Markdown image that
+stands in its own paragraph. An image without `size:` uses its natural width,
+bounded by the content column. `size: small`, `medium`, `large`, and `xlarge`
+set maximum widths of 64, 128, 256, and 512 CSS pixels. `size: full-width` fills
+the content column; `.full-width` gives the figure the same column width. When
+`.full-width` and a bounded size appear together, the image keeps its named
+width inside the full-width figure. The image height follows its aspect ratio.
+
+`float: top-left` and `bottom-left` wrap prose to the right; `top-right` and
+`bottom-right` wrap it to the left. `float: center` centers the figure without
+wrapping. On narrow screens, figures remain in document order without text
+wrapping. The caption is the image's alt text.
+
 ## The holdings card
 
 `partials/holdings.html` renders a bordered card below the body and above the
