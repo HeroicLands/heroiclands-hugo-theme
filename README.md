@@ -73,6 +73,11 @@ themesDir = "../node_modules/@heroiclands"
 The theme ships `layouts`, `static`, `data`, `theme.toml` and `CHANGELOG.md`, and
 has **no runtime dependencies**.
 
+**Hugo configuration belongs to the site build.** This package has no root
+`hugo.toml`. `@heroiclands/package-build` writes the Markdown renderer and
+taxonomy settings used by generated sites; a site built outside that toolchain
+supplies its own Hugo configuration.
+
 ### Upgrading
 
 The theme is on `0.x`, where **a caret does not cross a minor**: `^0.2.0` means
