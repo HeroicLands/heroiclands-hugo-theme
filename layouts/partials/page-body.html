@@ -52,11 +52,16 @@
   {{- end }}
   <div class="single-content">
     {{- $tagChips := partial "tags.html" . -}}
-    {{ if or .Params.date (ne (trim $tagChips " \r\n\t") "") }}
+    {{- $beingSubtype := "" -}}
+    {{- if and (eq .Params.type "being") .Params.subType -}}
+      {{- $beingSubtype = cond (eq .Params.subType "npc") "NPC" (humanize .Params.subType) -}}
+    {{- end -}}
+    {{ if or .Params.date (ne (trim $tagChips " \r\n\t") "") $beingSubtype }}
     <div class="single-meta">
       {{ if .Params.date }}
       <time class="single-date" datetime="{{ .Date.Format "2006-01-02" }}">{{ .Date.Format "January 2, 2006" }}</time>
       {{ end }}
+      {{- with $beingSubtype }}<span class="single-subtype">{{ . }}</span>{{ end }}
       {{ $tagChips }}
     </div>
     {{ end }}

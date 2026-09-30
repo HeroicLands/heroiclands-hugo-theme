@@ -220,6 +220,7 @@ through the page's own catalog.
 ---
 title: Brànwâal Dôrgaar
 type: being # the page's catalog — see "Prev/next" below
+subType: character # a being's classification; shown as a plain label
 banner: being/dorgaar.webp
 date: 2024-03-01 # optional; shown in the page meta line
 tags: [archetype, mercantyl] # optional; shown in the page meta line
@@ -233,6 +234,8 @@ tags: [archetype, mercantyl] # optional; shown in the page meta line
   carries). A page with no `type` has no catalog.
 - **`date`**, **`tags`** — each optional and shown only when present, in a
   meta line above the body. A tag links to `tags/<tag>/`.
+- **`subType`** — shown as a plain label for `type: being` pages. It does not
+  create a tag or taxonomy term.
 
 **The draft notice.** A page tagged `draft` states that its content is not
 settled, at the head of the article — above the infobox rail and above the
