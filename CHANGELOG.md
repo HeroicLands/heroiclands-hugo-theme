@@ -1,5 +1,11 @@
 # @heroiclands/hugo-theme
 
+## 0.9.2
+
+### Patch Changes
+
+Missing banner warnings appear once per banner name in each site build.
+
 ## 0.9.1
 
 ### Patch Changes
