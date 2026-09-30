@@ -1614,6 +1614,13 @@ a.tag:hover {
   margin-top: 0;
 }
 
+.single-subtype {
+  display: inline-block;
+  margin-right: 0.75rem;
+  color: var(--text-muted);
+  font-size: 0.75rem;
+}
+
 .single-meta .single-tags {
   margin-top: 0.5rem;
 }
