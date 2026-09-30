@@ -76,9 +76,12 @@
   {{- if and $banner (not $absolute) (eq (path.Dir $banner) $dir) -}}
     {{- $name := strings.TrimSuffix (path.Ext $banner) (path.Base $banner) -}}
     {{- if not (in $available $name) -}}
-      {{- warnidf (printf "hero-banner-missing-%s" $name)
-          "hero-banner: no banner named %q in the shared artwork set; falling back to %s/%s. Draw it and add %q to data/banners.yaml, or set `banner:` on the page (`banner: none` declines a hero image). First seen on %s."
-          $name $dir $fallback $name $context -}}
+      {{- partialCached "warn-missing-banner.html" (dict
+          "name" $name
+          "dir" $dir
+          "fallback" $fallback
+          "context" $context
+        ) $name -}}
       {{- $banner = printf "%s/%s" $dir $fallback -}}
     {{- end -}}
   {{- end -}}
