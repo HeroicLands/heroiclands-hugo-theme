@@ -1,5 +1,19 @@
 # @heroiclands/hugo-theme
 
+## 0.9.1
+
+### Patch Changes
+
+Being pages show their NPC, character, or creature classification as a plain label while their subject tags remain linked.
+
+The draft notice's mark is larger and sits centered beside its sentence, easier to notice against the text next to it.
+
+A draft page's notice sets its sentence in italic, with **Draft.** in bold ahead of it — the page speaking about its own state rather than about the world.
+
+**Illustrations** — Note images honor their named sizes and float positions, with text wrapping on wide pages and clear placement on narrow screens.
+
+**Place maps** — Place pages show an interactive “From here” map when their geography includes borders or routes.
+
 ## 0.9.0
 
 ### Minor Changes
