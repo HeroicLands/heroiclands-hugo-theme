@@ -255,8 +255,8 @@ out of the meta line's tag row and said here instead.
 ```
 
 - **`params.draftNotice`** replaces the sentence. The default reads
-  *This entry is unfinished. What it states may change, and nothing in it is
-  settled.*
+  _This entry is unfinished. What it states may change, and nothing in it is
+  settled._
 - **`.draft-notice`**, **`.draft-notice-icon`**, **`.draft-notice-text`** and
   **`.draft-notice-label`** are the classes a consumer styles against.
 - The mark is Font Awesome, which `baseof.html` already loads; the sentence
@@ -508,7 +508,7 @@ empty, renders no card at all.
 
 Nearly every page in this theme opens with a hero band, and
 `partials/hero-banner.html` decides what sits behind it. The image is served
-from the consumer's `params.cdnBaseURL`, so the theme resolves a *path* and
+from the consumer's `params.cdnBaseURL`, so the theme resolves a _path_ and
 never a host.
 
 **Resolution order.**
@@ -549,8 +549,8 @@ can run the same check against it.
 
 **Declining a hero image.** `banner: none` renders the band with no image at
 all — the title, the palette and the `.hero-with-image` gradient, which is what
-gives the band its presence. This is deliberately distinct from *not having one
-yet*: a package may have a standing editorial reason to publish no imagery, as
+gives the band its presence. This is deliberately distinct from _not having one
+yet_: a package may have a standing editorial reason to publish no imagery, as
 the fan-material carve-outs do, and falling back to a default for those would
 substitute artwork where the considered answer was "none".
 

@@ -1,0 +1,3 @@
+---
+"@heroiclands/hugo-theme": patch
+---
