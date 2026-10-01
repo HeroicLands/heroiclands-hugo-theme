@@ -1,5 +1,9 @@
 # @heroiclands/hugo-theme
 
+## 0.9.3
+
+### Patch Changes
+
 ## 0.9.2
 
 ### Patch Changes
