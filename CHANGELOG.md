@@ -1,5 +1,19 @@
 # @heroiclands/hugo-theme
 
+## 0.9.4
+
+### Patch Changes
+
+A note's secret, info and warn asides now read apart at a glance — violet for a GM aside, blue for a note, amber for a caution — instead of all three showing as the same plain disclosure.
+
+**Footnotes** — A marker in the text reads as a reference: small, raised, in the
+
+- The notes at the foot of a page sit in a section of their own, separated from
+  the article and labelled Footnotes.
+- Following a marker, or the arrow back from a note, highlights what it lands
+  on, so a reader can see where the jump went.
+- Both are reachable by keyboard and show a focus ring.
+
 ## 0.9.3
 
 ### Patch Changes
