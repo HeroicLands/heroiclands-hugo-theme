@@ -46,6 +46,13 @@
   --block-warn:   #e0a030;
   --block-secret: #c3a6f0;
 
+  /* A footnote's marker and its back-reference. The brighter accent rather
+     than --accent, because a marker is small type: --accent reaches only
+     4.29:1 on --surface, while this holds 6.70:1 on --bg, 6.21:1 on --bg-card
+     and 5.45:1 on --surface. All three are surfaces a marker can sit on, since
+     a footnote may be called from inside a blockquote or a named block. */
+  --footnote-marker: var(--accent-hover);
+
   --font-display:  'Cinzel', 'Georgia', serif;
   --font-body:     'Lora', 'Georgia', serif;
   --font-mono:     'JetBrains Mono', monospace;
@@ -1337,6 +1344,139 @@ a.tag:hover {
   background: var(--gold-dim);
   transform: translate(-50%, -50%) rotate(45deg);
   box-shadow: 0 0 0 3px var(--bg);
+}
+
+
+/* ---- Footnotes ----
+
+   Goldmark renders a footnote marker as a <sup> wrapping an `a.footnote-ref`,
+   and the notes themselves as a `div.footnotes` holding an <hr>, an <ol> of
+   notes, and an `a.footnote-backref` glyph closing each one. Those classes
+   arrive inside the rendered body, so they are scoped under the article
+   wrapper like the rest of its typography.
+
+   The marker takes its size in rem rather than em: <sup> already shrinks its
+   contents, so an em value compounds and the marker lands at whatever the
+   surrounding type happens to be. It stays an inline box as well — vertical
+   padding on an inline element enlarges the hit area without touching the line
+   box, so a marker is comfortable to hit and the leading of the paragraph
+   carrying it matches every other paragraph.
+
+   The notes section carries no heading of its own, and one cannot be added to
+   the rendered body, so the label is a ::before on the container. Goldmark's
+   <hr> goes with it: the theme gives `---` an ornamental rule meaning "a break
+   in the article", and opening the notes with that same mark says the article
+   continues. A rule above the section separates it instead, and the label says
+   what it is — which is what the Foundry surface shows and what the authoring
+   document describes.
+
+   Following a marker or a back-reference has to land somewhere visible, so
+   both ends of the jump highlight: the note under `li:target`, and the marker
+   under the <sup> that carries the id. Each keeps its padding at rest, so the
+   highlight appears without shifting the text around it.
+
+   Single-mode dark, deliberately, as the markers and named blocks above. */
+
+.single-content .footnote-ref {
+  font-size: 0.78rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--footnote-marker);
+  margin: 0 0.15em;
+  padding: 0.4em 0.25em;
+  border-radius: 3px;
+  border-bottom: none;
+}
+
+.single-content .footnote-ref:hover {
+  color: var(--footnote-marker);
+  background: var(--surface);
+}
+
+/* The id sits on the <sup>, so a jump to #fnref:N targets the wrapper and the
+   link inside it is styled through that. Only a footnote marker carries an id
+   on a <sup> in rendered output. */
+.single-content sup:target {
+  scroll-margin-top: 2rem;
+}
+
+.single-content sup:target .footnote-ref {
+  background: var(--surface);
+  box-shadow: 0 0 0 2px var(--footnote-marker);
+}
+
+.single-content .footnotes {
+  margin-top: 3rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--border);
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+
+.single-content .footnotes::before {
+  content: "Footnotes";
+  display: block;
+  font-family: var(--font-display);
+  font-size: 1.05rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text);
+  margin-bottom: 0.75rem;
+}
+
+.single-content .footnotes hr {
+  display: none;
+}
+
+.single-content .footnotes ol {
+  margin: 0 0 0 1.5rem;
+}
+
+.single-content .footnotes li {
+  margin-bottom: 0.5rem;
+  padding: 0.2rem 0.5rem;
+  border-radius: 3px;
+  scroll-margin-top: 2rem;
+}
+
+.single-content .footnotes ol > li::marker {
+  color: var(--footnote-marker);
+  font-weight: 700;
+}
+
+.single-content .footnotes li:target {
+  background: var(--surface);
+  outline: 1px solid var(--border-light);
+}
+
+.single-content .footnotes li p {
+  margin-bottom: 0.4rem;
+}
+
+.single-content .footnotes li > :last-child {
+  margin-bottom: 0;
+}
+
+.single-content .footnote-backref {
+  color: var(--footnote-marker);
+  padding: 0.25em 0.35em;
+  border-radius: 3px;
+  border-bottom: none;
+}
+
+.single-content .footnote-backref:hover {
+  color: var(--footnote-marker);
+  background: var(--surface);
+}
+
+/* The theme styles no other focus ring, so these carry their own: both links
+   are small, and the ring is the only thing marking where the keyboard is. */
+.single-content .footnote-ref:focus-visible,
+.single-content .footnote-backref:focus-visible {
+  outline: 2px solid var(--footnote-marker);
+  outline-offset: 2px;
+  background: var(--surface);
 }
 
 
