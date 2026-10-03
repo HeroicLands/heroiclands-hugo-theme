@@ -35,6 +35,17 @@
      reader has to be able to tell them apart. */
   --draft-link: #f2b950;
 
+  /* A note's `info`, `warn` and `secret` named blocks. Each exposes its own
+     property so a consuming site can retint one kind without restating the
+     block's layout. Contrast-checked against the three surfaces a block's
+     heading can sit on: info 7.95:1 on --bg, 7.37:1 on --bg-card, 6.46:1 on
+     --surface; warn 7.81:1 / 7.24:1 / 6.35:1; secret 8.48:1 / 7.86:1 / 6.89:1.
+     Three distinct hues — blue, amber, violet — so the kinds read apart by
+     hue alone as well as by position. */
+  --block-info:   #6fb3f2;
+  --block-warn:   #e0a030;
+  --block-secret: #c3a6f0;
+
   --font-display:  'Cinzel', 'Georgia', serif;
   --font-body:     'Lora', 'Georgia', serif;
   --font-mono:     'JetBrains Mono', monospace;
@@ -1043,6 +1054,99 @@ a.tag:hover {
   background: var(--bg-card);
   color: var(--text-muted);
   font-style: italic;
+}
+
+/* ---- Named blocks (info, warn, secret) ----
+
+   A note's `:::info`, `:::warn` and `:::secret` blocks reach the page as a
+   <details> carrying the kind as its first class, with the <summary>
+   repeating it alone. An author may add further classes and attributes
+   beside the kind, so every selector here matches on the kind class rather
+   than assuming the attribute is one word.
+
+   Each kind sets --block-accent from its own custom property, so the shared
+   rule below carries the layout once and a consuming site can retint one
+   kind by redeclaring --block-info / --block-warn / --block-secret alone.
+
+   Single-mode dark, deliberately, as the markers above: this theme sets no
+   color-scheme, so a light-dark() value would resolve to its light half and
+   the toolchain's old fixed light fills are exactly what this replaces. */
+
+.single-content details.info,
+.single-content details.warn,
+.single-content details.secret {
+  margin: 1.5rem 0;
+  padding: 0.85rem 1.1rem;
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--block-accent);
+  border-radius: 4px;
+  background: var(--bg-card);
+}
+
+.single-content details.info {
+  --block-accent: var(--block-info);
+}
+
+.single-content details.warn {
+  --block-accent: var(--block-warn);
+}
+
+.single-content details.secret {
+  --block-accent: var(--block-secret);
+}
+
+.single-content details.info > summary.info,
+.single-content details.warn > summary.warn,
+.single-content details.secret > summary.secret {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  cursor: pointer;
+  list-style: none;
+  font-family: var(--font-display);
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: var(--block-accent);
+}
+
+.single-content details.info > summary.info::-webkit-details-marker,
+.single-content details.warn > summary.warn::-webkit-details-marker,
+.single-content details.secret > summary.secret::-webkit-details-marker {
+  display: none;
+}
+
+/* The chevron replaces the browser's own marker, matching the disclosure
+   affordance .info-sidebar-title uses, so a reader meets one convention for
+   "this opens" across the theme rather than two. */
+.single-content details.info > summary.info::after,
+.single-content details.warn > summary.warn::after,
+.single-content details.secret > summary.secret::after {
+  content: "";
+  width: 0.45rem;
+  height: 0.45rem;
+  margin-left: auto;
+  border-right: 2px solid currentcolor;
+  border-bottom: 2px solid currentcolor;
+  transform: translateY(-0.15em) rotate(45deg);
+  transition: transform 0.15s ease;
+}
+
+.single-content details.info[open] > summary.info::after,
+.single-content details.warn[open] > summary.warn::after,
+.single-content details.secret[open] > summary.secret::after {
+  transform: translateY(0.1em) rotate(-135deg);
+}
+
+.single-content details.info[open] > summary.info,
+.single-content details.warn[open] > summary.warn,
+.single-content details.secret[open] > summary.secret {
+  margin-bottom: 0.75rem;
+}
+
+.single-content details.info > :last-child,
+.single-content details.warn > :last-child,
+.single-content details.secret > :last-child {
+  margin-bottom: 0;
 }
 
 .single-content code {
