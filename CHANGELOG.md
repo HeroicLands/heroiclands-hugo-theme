@@ -1,5 +1,29 @@
 # @heroiclands/hugo-theme
 
+## 0.9.5
+
+### Patch Changes
+
+**Hero banners**
+
+- A page whose note names its own hero image shows that image, in place of the
+  stock banner for its kind.
+- A note naming no hero image gets a band with none, as a hand-authored page
+  already could.
+
+**Figures**
+
+- A numbered figure, table, listing or map reads as one block, its number and
+  caption set beneath it rather than running on as body text.
+- A passage set apart as an aside draws as a box.
+
+**Pictures**
+
+- A portrait or an emblem draws at half the content column; a banner, a plate or
+  a map draws at the full width of it.
+- No picture is drawn wider than the size it was made at, and a stated width
+  still overrides its role's measure.
+
 ## 0.9.4
 
 ### Patch Changes
