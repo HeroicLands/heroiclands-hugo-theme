@@ -1226,15 +1226,6 @@ a.tag:hover {
   margin: 0;
 }
 
-.single-content figure.note-image figcaption {
-  display: table-caption;
-  caption-side: bottom;
-  margin-top: 0.4rem;
-  color: var(--text-muted);
-  font-size: 0.8rem;
-  line-height: 1.4;
-}
-
 /* What a role draws at on this surface. Each slot is a maximum, never a
    target: the drawn width is the smaller of the slot and the picture's own
    pixels, which the emitted `width`/`height` attributes supply as the figure's
@@ -1294,11 +1285,6 @@ a.tag:hover {
   width: var(--note-image-width, 100%);
 }
 
-.single-content figure.note-image-full-width figcaption,
-.single-content figure.note-image-size-full-width figcaption {
-  display: block;
-}
-
 .single-content figure.note-image-float-top-left,
 .single-content figure.note-image-float-bottom-left {
   float: left;
@@ -1347,6 +1333,44 @@ a.tag:hover {
   .single-content figure.note-image-float-bottom-right img {
     width: var(--note-image-width, auto);
   }
+}
+
+/* A `:::figure` fence: a numbered, referable block carrying its label beneath
+   whatever it holds — a picture, a table, a listing, a map, or prose. The
+   contents decide the counter and the label's word, and every kind draws
+   alike, so a kind added to the vocabulary arrives styled. A fence is a
+   cross-reference target, and takes the scroll offset a heading does. */
+.single-content .content-figure {
+  margin: 1.5rem 0;
+  scroll-margin-top: 2rem;
+}
+
+/* The fence owns the space around what it wraps, so its contents add none of
+   their own at the edges. */
+.single-content .content-figure > :first-child {
+  margin-top: 0;
+}
+
+.single-content .content-figure > figure.note-image {
+  margin: 0;
+}
+
+/* The label carries the number a cross-reference points at, so it reads as a
+   caption rather than as another paragraph of the body. */
+.single-content .content-figure-label {
+  margin: 0.5rem 0 0;
+  color: var(--text-muted);
+  font-size: 0.8rem;
+  line-height: 1.4;
+}
+
+/* `.border` is the one class an author may write on a fence, and it draws the
+   block as a boxed aside. */
+.single-content .content-figure.border {
+  padding: 1rem 1.25rem;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  background: var(--bg-card);
 }
 
 /* Ornamental horizontal rule: thin line flanking a centered gold

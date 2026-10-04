@@ -44,61 +44,18 @@ import {
   roleClass,
 } from "@heroiclands/package-build/engine/content-images";
 
+import { declares, lineOf, rules } from "./css-rules.mjs";
+
 /** The stylesheet holding the table. */
 const SHEET = "static/css/style.css";
 
 /** The custom property a role's slot is stated as, and read from. */
 const SLOT = "--note-image-slot";
 
-/**
- * Every style rule in a stylesheet, as a selector and the declarations under
- * it. At-rule preludes are dropped and the rules nested inside them kept, so a
- * declaration inside a media query counts exactly as one outside it.
- *
- * @param {string} css - The stylesheet source.
- * @returns {{selector: string, body: string}[]} The rules, in source order.
- */
-function rules(css) {
-  const clean = css.replace(/\/\*[\s\S]*?\*\//g, "");
-  /** @type {string[]} */
-  const preludes = [];
-  /** @type {{selector: string, body: string}[]} */
-  const out = [];
-  let buf = "";
-  for (const ch of clean) {
-    if (ch === "{") {
-      preludes.push(buf.trim());
-      buf = "";
-    } else if (ch === "}") {
-      const selector = preludes.pop() ?? "";
-      if (!selector.startsWith("@")) out.push({ selector, body: buf });
-      buf = "";
-    } else {
-      buf += ch;
-    }
-  }
-  return out;
-}
-
-/** The line a class is first named on, so an editor can jump to the table. */
-function lineOf(source, className) {
-  const index = source.split("\n").findIndex((l) => l.includes(`.${className}`));
-  return index === -1 ? 0 : index + 1;
-}
-
 /** Diagnostics carry the fields they can know and drop the ones they cannot. */
 function diag(line, message) {
   const where = line ? `${SHEET}:${line}` : SHEET;
   console.error(`${where}: error: ${message}`);
-}
-
-/** Whether any rule naming `className` declares `property`. */
-function declares(styles, className, property) {
-  return styles.some(
-    (rule) =>
-      rule.selector.includes(`.${className}`) &&
-      new RegExp(`(^|[\\s;{])${property}\\s*:`).test(rule.body),
-  );
 }
 
 const source = readFileSync(resolve(SHEET), "utf8");
