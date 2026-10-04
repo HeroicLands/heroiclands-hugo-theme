@@ -47,9 +47,9 @@ request, squash-merged.
 3. **Make the change**, keeping it small and focused — one feature, one fix, or one
    documentation improvement per pull request.
 4. **Verify it against a real consumer.** The theme does not build on its own; it
-   renders when a site uses it. Point a consuming site's `themes/` submodule at your
-   branch and build that site. **Check more than one consumer** for anything touching
-   a shared partial.
+   renders when a site uses it. Install your branch over a consuming site's
+   `node_modules/@heroiclands/hugo-theme` and build that site. **Check more than one
+   consumer** for anything touching a shared partial.
 5. `npm run lint` must pass — it asserts `.github/labels.yml` and §3 of the standard
    still agree, and that every banner `data/banners.yaml` declares is actually
    published. (`npm install` also installs the `commit-msg` hook.)

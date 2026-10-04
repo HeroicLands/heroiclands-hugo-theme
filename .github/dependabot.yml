@@ -9,8 +9,8 @@
 # devDependency, but its workflows include the one that publishes to npm, and
 # that path is credential-bearing: it exchanges an OIDC token for a short-lived
 # npm credential through Trusted Publishing. Every consumer takes this package
-# from the registry now rather than as a git submodule, so this repository's
-# supply chain is three sites' supply chain. See #21.
+# from the registry, so this repository's supply chain is three sites' supply
+# chain.
 version: 2
 updates:
   - package-ecosystem: npm

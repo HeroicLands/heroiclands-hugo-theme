@@ -93,15 +93,6 @@ one of them is automatic.
 A site can therefore be several theme releases behind on entirely green builds.
 `CHANGELOG.md` in the installed package says which version it actually has.
 
-### Why not a submodule
-
-It was one, in all three consuming repositories, and the pointers went stale
-without anything saying so: HeroicLands/heroiclands-hugo-theme#18 merged the two
-profile sidebars into one, and 482 published pages rendered without a sidebar on
-green builds until someone noticed (#19). A submodule SHA is invisible to every
-tool a project already runs; a version range and a lockfile are not, and
-Dependabot raises the bump on its own.
-
 ### What a consumer must supply
 
 Everything below is optional — each is guarded, and omitting one simply drops
