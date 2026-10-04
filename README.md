@@ -282,11 +282,14 @@ A row is a linked title and, when the page carries one, its description.
 ## The infobox
 
 A page's summary panels are **derived by the content build, carried in the
-front matter it emits, and drawn by one generic renderer**. A note authors no
-`infoboxes:` key. What a box holds — which fields, in what order, under what
-labels, in which section — is decided by the build, so a field added to a
-content type appears here with no template change and reads the same on the
-website, in a compendium journal and in the book.
+front matter it emits, and drawn by one generic renderer**. `infoboxes:` cannot
+be authored: a note's own front matter has a closed top-level region that does
+not admit the key, and the vocabulary declares no `data.infoboxes` either, so
+writing one is a frontmatter error rather than a panel. What a box holds —
+which fields, in what order, under what labels, in which section — is decided
+by the build, so a field added to a content type appears here with no template
+change and reads the same on the website, in a compendium journal and in the
+book.
 
 `partials/infobox.html` draws the whole list. It switches on a section's
 `layout` and a value's `kind` and on nothing else: it never reads a note type
