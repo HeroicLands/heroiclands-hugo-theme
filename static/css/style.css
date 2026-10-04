@@ -1209,11 +1209,12 @@ a.tag:hover {
   margin: 1.5rem 0;
 }
 
-/* An authored image uses its file width unless a named size sets a measure. */
+/* An authored image uses its file width unless a named size sets a measure
+   or its role states a slot. */
 .single-content figure.note-image {
   display: table;
   width: max-content;
-  max-width: 100%;
+  max-width: min(100%, var(--note-image-slot, 100%));
   margin: 1.5rem 0;
 }
 
@@ -1234,6 +1235,33 @@ a.tag:hover {
   line-height: 1.4;
 }
 
+/* What a role draws at on this surface. Each slot is a maximum, never a
+   target: the drawn width is the smaller of the slot and the picture's own
+   pixels, which the emitted `width`/`height` attributes supply as the figure's
+   intrinsic measure. A named `size=` or a stated width overrides a slot
+   outright, which is what clearing the property below it does. */
+.single-content figure.note-image-role-portrait,
+.single-content figure.note-image-role-emblem {
+  --note-image-slot: 50%;
+}
+
+.single-content figure.note-image-role-banner,
+.single-content figure.note-image-role-plate,
+.single-content figure.note-image-role-map {
+  --note-image-slot: 100%;
+}
+
+/* A vector carries no pixel count, so nothing narrows its role's slot and it
+   draws at the slot rather than at an intrinsic measure it does not hold. A
+   blank `width` attribute is what tells one from a raster. */
+.single-content figure[class*="note-image-role-"]:has(img[width=""]) {
+  width: min(100%, var(--note-image-width, var(--note-image-slot, 100%)));
+}
+
+.single-content figure[class*="note-image-role-"] img[width=""] {
+  width: 100%;
+}
+
 .single-content figure.note-image-size-small { --note-image-width: 64px; }
 .single-content figure.note-image-size-medium { --note-image-width: 128px; }
 .single-content figure.note-image-size-large { --note-image-width: 256px; }
@@ -1243,6 +1271,7 @@ a.tag:hover {
 .single-content figure.note-image-size-medium,
 .single-content figure.note-image-size-large,
 .single-content figure.note-image-size-xlarge {
+  --note-image-slot: 100%;
   width: min(100%, var(--note-image-width));
 }
 
@@ -1255,6 +1284,7 @@ a.tag:hover {
 
 .single-content figure.note-image-full-width,
 .single-content figure.note-image-size-full-width {
+  --note-image-slot: 100%;
   display: block;
   width: 100%;
 }
@@ -1272,14 +1302,14 @@ a.tag:hover {
 .single-content figure.note-image-float-top-left,
 .single-content figure.note-image-float-bottom-left {
   float: left;
-  max-width: 50%;
+  max-width: min(50%, var(--note-image-slot, 100%));
   margin: 0.25rem 1.25rem 0.75rem 0;
 }
 
 .single-content figure.note-image-float-top-right,
 .single-content figure.note-image-float-bottom-right {
   float: right;
-  max-width: 50%;
+  max-width: min(50%, var(--note-image-slot, 100%));
   margin: 0.25rem 0 0.75rem 1.25rem;
 }
 
@@ -1294,6 +1324,12 @@ a.tag:hover {
 }
 
 @media (max-width: 720px) {
+  /* Half a phone's column is a thumbnail, so a role's slot opens to the whole
+     of it. The picture's own pixels still cap what it draws at. */
+  .single-content figure.note-image {
+    --note-image-slot: 100%;
+  }
+
   .single-content figure.note-image-float-top-left,
   .single-content figure.note-image-float-bottom-left,
   .single-content figure.note-image-float-top-right,
