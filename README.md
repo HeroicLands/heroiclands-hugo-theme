@@ -408,6 +408,18 @@ the content column; `.full-width` gives the figure the same column width. When
 `.full-width` and a bounded size appear together, the image keeps its named
 width inside the full-width figure. The image height follows its aspect ratio.
 
+A picture's declared role carries a maximum of its own, so pictures of one kind
+draw at one measure across every page. `portrait` and `emblem` take half the
+content column; `banner`, `plate`, and `map` take the whole of it. Each slot is
+a maximum rather than a target: the drawn width is the smaller of the slot and
+what the file's own pixels support, so a picture is never stretched past the
+size it was made at. A named `size:` or `.full-width` overrides a role's slot
+outright, and a vector — which states no pixel count — draws at the slot. On a
+narrow column every slot opens to the full measure. `npm run lint:image-roles`
+(`utils/check-image-roles.mjs`, part of `npm run lint`) reads the role
+vocabulary from the content toolchain, so a role added there fails the check
+here until the table gives it a slot.
+
 `float: top-left` and `bottom-left` wrap prose to the right; `top-right` and
 `bottom-right` wrap it to the left. `float: center` centers the figure without
 wrapping. On narrow screens, figures remain in document order without text

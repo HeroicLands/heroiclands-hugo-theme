@@ -51,8 +51,9 @@ request, squash-merged.
    branch and build that site. **Check more than one consumer** for anything touching
    a shared partial.
 5. `npm run lint` must pass — it asserts `.github/labels.yml` and §3 of the standard
-   still agree, and that every banner `data/banners.yaml` declares is actually
-   published. (`npm install` also installs the `commit-msg` hook.)
+   still agree, that the stylesheet gives every picture role the content toolchain
+   declares a width to draw at, and that every banner `data/banners.yaml` declares
+   is actually published. (`npm install` also installs the `commit-msg` hook.)
 6. **Declare the bump** when a consumer will notice: `npx changeset`. A change
    that ships nothing to consumers carries no changeset at all. See
    [Releasing](#releasing).
