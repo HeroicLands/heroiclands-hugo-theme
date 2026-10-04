@@ -403,6 +403,40 @@ wrapping. On narrow screens, figures remain in document order without text
 wrapping. An image's label is alternative text, carried on the image itself for
 a reader who cannot see it, and is not drawn beneath the picture.
 
+## A numbered figure
+
+A `:::figure` fence wraps a picture, a table, a listing, a map or a passage of
+prose in a numbered, referable block. The content build decides which from the
+fence's contents, counts each kind separately, and emits the block with its
+label beneath whatever it holds:
+
+```html
+<div id="harbour-at-dusk" class="content-figure content-figure-figure">
+  <figure class="note-image note-image-role-map">…</figure>
+  <p class="content-figure-label">Figure 3: The harbour at dusk</p>
+</div>
+```
+
+The kind is `code`, `table`, `figure`, `map` or `prose`, labelled **Code**,
+**Table**, **Figure**, **Map** and **Prose**. Every kind is drawn alike — the
+block carries the spacing, its contents add none of their own at the edges, and
+the label reads as a caption rather than as another paragraph of the body — so
+a kind added to the vocabulary arrives styled. A fence carrying an `id` is a
+cross-reference target and takes the same scroll offset a heading does.
+
+`border` is the one class an author may write on a fence, and it draws the
+block as a boxed aside. `npm run lint:figure-fences`
+(`utils/check-figure-fences.mjs`, part of `npm run lint`) reads the kinds and
+the authored classes from the content toolchain, so either vocabulary growing
+upstream fails the check here until the stylesheet covers it.
+
+| class                   | drawn as                                        |
+| ----------------------- | ----------------------------------------------- |
+| `.content-figure`       | the block                                       |
+| `.content-figure-<kind>` | the kind, for a consumer wanting one apart     |
+| `.content-figure-label` | the label, number and caption together          |
+| `.border`               | the block as a boxed aside                      |
+
 ## The holdings card
 
 `partials/holdings.html` renders a bordered card below the body and above the
