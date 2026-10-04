@@ -531,24 +531,30 @@ empty, renders no card at all.
 ## The hero banner
 
 Nearly every page in this theme opens with a hero band, and
-`partials/hero-banner.html` decides what sits behind it. The image is served
-from the consumer's `params.cdnBaseURL`, so the theme resolves a _path_ and
-never a host.
+`partials/hero-banner.html` decides what sits behind it. A page arrives with
+its hero image stated in one of two ways, and the difference is who resolved
+it: a content page carries `data.banner`, which the content build resolved from
+the asset Address the note declared into the address its asset host serves; a
+hand-authored page carries a top-level `banner:`, which the theme resolves
+against the consumer's `params.cdnBaseURL`.
 
 **Resolution order.**
 
-1. `banner:` in the page's front matter. `none` (or `false`) declines a hero
-   image; a full URL is used as-is; anything else is a fragment under `images/`.
-2. `images/banners/{subtype}.webp`, where the subtype is the page's `category`
+1. `data.banner` — a note's own hero image, used exactly as given, because the
+   build resolved it against a real asset record and dropped one nothing
+   answered. A blank is a note naming no hero image on purpose and declines
+   one; an unset or `null` value carries on to the next step.
+2. `banner:` at the top level. `none` (or `false`) declines a hero image; a
+   full URL is used as-is; anything else is a fragment under `images/`.
+3. `images/banners/{subtype}.webp`, where the subtype is the page's `category`
    for a `type: doc` page and its `type` otherwise.
-3. `images/banners/default.webp` — when the page has no type, **and** whenever
-   the name picked by 1 or 2 is not in the declared inventory.
+4. `images/banners/default.webp` — when the page has no type, **and** whenever
+   the name picked by 2 or 3 is not in the declared inventory.
 
-**Why step 3 is a declaration, not a test.** Hugo cannot ask a remote host
-whether a URL exists, so before this the resolved path was emitted unchecked
-and a banner that had never been drawn 404'd in silence — the band rendered
-with its title, palette and gradient intact behind a dead URL, and nothing
-failed: not the build, not Hugo, not the deploy guard (issue #36).
+**Why step 4 is a declaration, not a test.** Hugo cannot ask a remote host
+whether a URL exists, so a banner that was never drawn would 404 in silence —
+the band renders with its title, palette and gradient intact behind a dead URL,
+and nothing fails: not the build, not Hugo, not the deploy guard.
 `data/banners.yaml` is the declaration that stands in for the test the template
 cannot make. A name listed in its `available` is asserted to exist; a resolved
 name that is absent falls back to `fallback` and Hugo logs one deduplicated
@@ -556,7 +562,8 @@ warning naming the missing banner and the first page that wanted it. The
 fallback applies only to a relative path landing directly in the declared
 `dir` — an absolute URL, and a fragment pointing anywhere else under `images/`,
 pass through untouched, because the theme has no inventory for either and must
-not second-guess an address it cannot know about.
+not second-guess an address it cannot know about. A step 1 address is not
+checked for the same reason: the question has already been answered upstream.
 
 **One resolver.** The order above lives in `partials/banner-url.html`, which
 returns a URL or an empty string; `hero-banner.html` calls it with the page's
@@ -571,7 +578,8 @@ A consumer publishing its own artwork set replaces the whole list by shipping
 its own `data/banners.yaml`, which Hugo reads in preference to the theme's, and
 can run the same check against it.
 
-**Declining a hero image.** `banner: none` renders the band with no image at
+**Declining a hero image.** `banner: none` on a hand-authored page, and a blank
+`data.banner` on a note, render the band with no image at
 all — the title, the palette and the `.hero-with-image` gradient, which is what
 gives the band its presence. This is deliberately distinct from _not having one
 yet_: a package may have a standing editorial reason to publish no imagery, as
