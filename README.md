@@ -78,30 +78,6 @@ has **no runtime dependencies**.
 taxonomy settings used by generated sites; a site built outside that toolchain
 supplies its own Hugo configuration.
 
-### Upgrading
-
-The theme is on `0.x`, where **a caret does not cross a minor**: `^0.2.0` means
-`>=0.2.0 <0.3.0`. So a theme release reaches a site in one of two ways, and only
-one of them is automatic.
-
-- **A patch** is already in range. Nothing in the manifest changes — but the
-  **lockfile must still move**, because `npm ci` installs what is locked.
-  Dependabot raises that pull request.
-- **A minor** is out of range, so Dependabot will not offer it at all. Widen the
-  pin by hand in the consuming repository's `package.json`, then update the lock.
-
-A site can therefore be several theme releases behind on entirely green builds.
-`CHANGELOG.md` in the installed package says which version it actually has.
-
-### Why not a submodule
-
-It was one, in all three consuming repositories, and the pointers went stale
-without anything saying so: HeroicLands/heroiclands-hugo-theme#18 merged the two
-profile sidebars into one, and 482 published pages rendered without a sidebar on
-green builds until someone noticed (#19). A submodule SHA is invisible to every
-tool a project already runs; a version range and a lockfile are not, and
-Dependabot raises the bump on its own.
-
 ### What a consumer must supply
 
 Everything below is optional — each is guarded, and omitting one simply drops
@@ -305,11 +281,12 @@ A row is a linked title and, when the page carries one, its description.
 
 ## The infobox
 
-A page's summary panels are **declared in its front matter and drawn by one
-generic renderer**. What a box holds — which fields, in what order, under what
-labels, in which section — is decided by the build that emits the page, so a
-field added to a content type appears here with no template change and reads
-the same on the website, in a compendium journal and in the book.
+A page's summary panels are **derived by the content build, carried in the
+front matter it emits, and drawn by one generic renderer**. A note authors no
+`infoboxes:` key. What a box holds — which fields, in what order, under what
+labels, in which section — is decided by the build, so a field added to a
+content type appears here with no template change and reads the same on the
+website, in a compendium journal and in the book.
 
 `partials/infobox.html` draws the whole list. It switches on a section's
 `layout` and a value's `kind` and on nothing else: it never reads a note type
