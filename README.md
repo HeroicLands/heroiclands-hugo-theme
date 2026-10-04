@@ -8,6 +8,49 @@ It provides the brand chrome (header/footer, the Cinzel/Lora + dark palette,
 base CSS in `static/css/style.css`), the content layouts, and the infobox
 renderer under `layouts/partials/infobox.html`.
 
+## What the build supplies, and what you supply
+
+Everything this theme draws comes from one of two places, and which one decides
+whether it is yours to write.
+
+**A page's front matter is emitted by `@heroiclands/package-build`.** On a site
+built by `package-build site`, an author writes notes and the build writes the
+pages: every page key named anywhere below arrives already set, several of them
+derived from facts no single note knows, and some — `infoboxes`, `related`,
+`contains`, `held_by`, `holdings`, `map`, `package`, `slug`, `url`, `title` —
+cannot be authored at all, because a note's own front matter has a closed
+top-level region that does not admit them. So **none of the feature sections
+below is an authoring instruction.** They document what the theme receives and
+what it draws from it, which is what you want when a panel is missing or a
+class needs styling — not keys to add to a note.
+
+**The site's configuration is yours, and the build never touches it.** That is
+[what a consumer must supply](#what-a-consumer-must-supply) — the brand, the
+menu, the asset root, the home page's links — plus `params.search`,
+`params.draftNotice`, `params.notfound`, and a `data/banners.yaml` of your own
+if you publish your own artwork set.
+
+**A site that is not a `package-build` consumer writes that front matter by
+hand.** `heroiclands-site` is one: its blog posts, its curated landings and any
+documentation tree mounted from a repository directory carry hand-written front
+matter, and this theme renders them through the same layouts. Where the two
+forms differ, the section says so.
+
+| What the theme draws | Where its input comes from |
+| --- | --- |
+| Brand chrome, menu, search box, 404 | your site configuration |
+| A page's title, catalog key, labels and tags | emitted |
+| The infobox rail | emitted, and not authorable |
+| A picture in prose, and a numbered figure | emitted markup, from what an author wrote in the body |
+| The holdings card | emitted from the content graph |
+| The place map | emitted, drawing and all |
+| The related card | emitted from the link graph |
+| The hero band's image | emitted as a resolved address, or hand-written |
+| The banner inventory and its fallback | this theme's `data/banners.yaml`, or yours |
+| The draft notice | emitted `tags`; its sentence is `params.draftNotice` |
+| Prev/next | Hugo, over the pages the build emitted |
+| A section landing, a blog post | hand-written — a `package-build` consumer has none |
+
 ## The theme carries layout, not addresses
 
 This theme is shared by every repository that renders pages, so **no host, no
@@ -197,8 +240,16 @@ everything it publishes — renders the featured grid documented under
 (see "The infobox" below), the body, any `related:` block, and prev/next links
 through the page's own catalog.
 
+**Emitted.** A note's page arrives with `title` (the note's name), `type`,
+`subType`, `description` and `tags` already set, and `data.banner` resolved.
+The form below is the hand-written one, which is what a blog post or a curated
+landing carries: `title`, `date` and a top-level `banner:` are keys the content
+build never writes, and a note page therefore has no `date` and no meta-line
+date at all.
+
 ```yaml
 ---
+# A hand-written page. A note's page carries the emitted form instead.
 title: Brànwâal Dôrgaar
 type: being # the page's catalog — see "Prev/next" below
 subType: character # a being's classification; shown as a plain label
@@ -252,7 +303,8 @@ already walks exactly that catalog there.
 
 ## A section landing
 
-`_default/list.html` renders whatever a consumer still gives Hugo's `section`,
+**Hand-written.** `_default/list.html` renders whatever a consumer still gives
+Hugo's `section`,
 `taxonomy` or `term` kinds to render — a hand-curated landing at a real
 subdirectory, and Hugo's own tag pages. A package-build consumer disables all
 three (`disableKinds`), so this layout never runs for one; a site that keeps
@@ -281,9 +333,12 @@ A row is a linked title and, when the page carries one, its description.
 
 ## The infobox
 
-A page's summary panels are **derived by the content build, carried in the
-front matter it emits, and drawn by one generic renderer**. A note authors no
-`infoboxes:` key. What a box holds — which fields, in what order, under what
+**Emitted, and not authorable.** A page's summary panels are derived by the
+content build, carried in the front matter it emits, and drawn by one generic
+renderer. `infoboxes:` cannot be written by hand: a note's top-level region is
+closed and does not admit the key, and the vocabulary declares no
+`data.infoboxes` either, so writing one is a frontmatter error rather than a
+panel. What a box holds — which fields, in what order, under what
 labels, in which section — is decided by the build, so a field added to a
 content type appears here with no template change and reads the same on the
 website, in a compendium journal and in the book.
@@ -377,7 +432,8 @@ consumer whose content does not carry them is unaffected.
 
 ## Images in note prose
 
-The content renderer emits a `figure.note-image` for a Markdown image that
+**Emitted markup, from what an author wrote in the body.** The content renderer
+emits a `figure.note-image` for a Markdown image that
 stands in its own paragraph. An image without `size:` uses its natural width,
 bounded by the content column. `size: small`, `medium`, `large`, and `xlarge`
 set maximum widths of 64, 128, 256, and 512 CSS pixels. `size: full-width` fills
@@ -405,7 +461,8 @@ a reader who cannot see it, and is not drawn beneath the picture.
 
 ## A numbered figure
 
-A `:::figure` fence wraps a picture, a table, a listing, a map or a passage of
+**Emitted markup, from what an author wrote in the body.** A `:::figure` fence
+wraps a picture, a table, a listing, a map or a passage of
 prose in a numbered, referable block. The content build decides which from the
 fence's contents, counts each kind separately, and emits the block with its
 label beneath whatever it holds:
@@ -439,9 +496,11 @@ upstream fails the check here until the stylesheet covers it.
 
 ## The holdings card
 
+**Emitted from the content graph, and not authorable.**
 `partials/holdings.html` renders a bordered card below the body and above the
 Related card, holding up to three small tables. `@heroiclands/package-build`
-derives the front matter; a note never authors these keys itself.
+derives the front matter from what every *other* page says, so the three keys
+are refused in a note and dropped if one carries them.
 
 ```yaml
 ---
@@ -488,9 +547,11 @@ A page whose front matter declares none of `contains`, `held_by` or
 
 ## The place map
 
-A place page with `map: from-<shortcode>.svg` displays a **From here** panel
-between Holdings and Related. The map is a page-bundle SVG generated from the
-place's borders and routes. Its place names link to their pages. A page with no
+**Emitted, drawing and all.** A place page with `map: from-<shortcode>.svg`
+displays a **From here** panel
+between Holdings and Related. The map is a page-bundle SVG the content build
+draws from the place's authored borders and routes, and `map:` is not a key a
+note may write. Its place names link to their pages. A page with no
 `map` value or no matching bundle resource displays no panel.
 
 The drawing fits the content column and scrolls horizontally when the available
@@ -499,9 +560,11 @@ and `.place-map-drawing`.
 
 ## The related card
 
-`partials/related.html` renders a bordered "Related" card below the body,
+**Emitted from the link graph, and not authorable.** `partials/related.html`
+renders a bordered "Related" card below the body,
 listing the pages connected to this one. `@heroiclands/package-build` emits
-the front matter on every content page.
+the front matter on every content page; what links to a page is a fact about
+every other page, so an authored `related:` is refused and dropped.
 
 ```yaml
 ---
