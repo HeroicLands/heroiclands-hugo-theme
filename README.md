@@ -423,7 +423,8 @@ here until the table gives it a slot.
 `float: top-left` and `bottom-left` wrap prose to the right; `top-right` and
 `bottom-right` wrap it to the left. `float: center` centers the figure without
 wrapping. On narrow screens, figures remain in document order without text
-wrapping. The caption is the image's alt text.
+wrapping. An image's label is alternative text, carried on the image itself for
+a reader who cannot see it, and is not drawn beneath the picture.
 
 ## The holdings card
 
