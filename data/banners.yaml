@@ -13,6 +13,11 @@
 # here is asserted to exist; a resolved banner whose name is absent falls back
 # to `default.webp` and Hugo warns once for it during the consumer's build.
 #
+# It speaks for the names this theme resolves itself — a hand-authored
+# `banner:` and the subtype defaults below. A note's own `data.banner` arrives
+# already resolved from an asset Address, against a real asset record, so it is
+# used as given and never looked for here.
+#
 # Keeping it in step is not left to hope: `npm run lint:banners`
 # (`utils/check-banners.mjs`, part of `npm run lint`) fetches every name below
 # from a real asset host and fails on any non-200. Add a name here only after
